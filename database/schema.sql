@@ -5,20 +5,20 @@ CREATE DATABASE IF NOT EXISTS taekwondo_periodizacion
 USE taekwondo_periodizacion;
 
 -- 1. Usuarios (Entrenadores y Practicantes)
-CREATE TABLE usuarios (
+CREATE TABLE IF NOT EXISTS usuarios (
   id INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(120) NOT NULL,
-  email VARCHAR(150) UNIQUE NOT NULL,
+  email VARCHAR(150) NOT NULL UNIQUE,
   rol ENUM('entrenador', 'practicante') NOT NULL DEFAULT 'practicante',
   modalidad ENUM('kyorugi', 'poomsae', 'mixto') NOT NULL DEFAULT 'kyorugi',
   nivel ENUM('iniciacion', 'intermedio', 'competitivo') NOT NULL DEFAULT 'intermedio',
   entrenador_id INT NULL,
   creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_usuario_entrenador FOREIGN KEY (entrenador_id) REFERENCES usuarios(id) ON DELETE SET NULL
+  INDEX idx_usuarios_entrenador (entrenador_id)
 );
 
--- 2. Macrociclos (Ciclo anual / temporada / preparación de torneo o evaluación)
-CREATE TABLE macrociclos (
+-- 2. Macrociclos
+CREATE TABLE IF NOT EXISTS macrociclos (
   id INT AUTO_INCREMENT PRIMARY KEY,
   creador_id INT NOT NULL,
   titulo VARCHAR(160) NOT NULL,
@@ -26,11 +26,12 @@ CREATE TABLE macrociclos (
   fecha_fin DATE NOT NULL,
   objetivo_principal VARCHAR(160) NOT NULL,
   creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_macro_creador (creador_id),
   CONSTRAINT fk_macro_creador FOREIGN KEY (creador_id) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 
--- 3. Mesociclos (Bloques de 2 a 6 semanas; alineados con periodos y capacidades del modelo guía)
-CREATE TABLE mesociclos (
+-- 3. Mesociclos
+CREATE TABLE IF NOT EXISTS mesociclos (
   id INT AUTO_INCREMENT PRIMARY KEY,
   macrociclo_id INT NOT NULL,
   numero_meso INT NOT NULL,
@@ -41,22 +42,24 @@ CREATE TABLE mesociclos (
   enfoque_velocidad VARCHAR(80) NOT NULL,
   enfoque_tecnico VARCHAR(120) NOT NULL,
   semanas_duracion INT NOT NULL DEFAULT 4,
+  INDEX idx_meso_macro (macrociclo_id),
   CONSTRAINT fk_meso_macro FOREIGN KEY (macrociclo_id) REFERENCES macrociclos(id) ON DELETE CASCADE
 );
 
--- 4. Microciclos (Semanas individuales del mesociclo)
-CREATE TABLE microciclos (
+-- 4. Microciclos
+CREATE TABLE IF NOT EXISTS microciclos (
   id INT AUTO_INCREMENT PRIMARY KEY,
   mesociclo_id INT NOT NULL,
   numero_semana INT NOT NULL,
   fecha_lunes DATE NOT NULL,
   es_descarga BOOLEAN NOT NULL DEFAULT FALSE,
   observaciones TEXT NULL,
+  INDEX idx_micro_meso (mesociclo_id),
   CONSTRAINT fk_micro_meso FOREIGN KEY (mesociclo_id) REFERENCES mesociclos(id) ON DELETE CASCADE
 );
 
--- 5. Catálogo de ejercicios (Físicos + Taekwondo)
-CREATE TABLE ejercicios_catalogo (
+-- 5. Catálogo de ejercicios
+CREATE TABLE IF NOT EXISTS ejercicios_catalogo (
   id INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(160) NOT NULL,
   categoria ENUM(
@@ -74,11 +77,11 @@ CREATE TABLE ejercicios_catalogo (
   impacto ENUM('bajo', 'medio', 'alto') NOT NULL DEFAULT 'medio',
   equipamiento VARCHAR(120) NOT NULL DEFAULT 'ninguno',
   ejercicio_alternativo_id INT NULL,
-  CONSTRAINT fk_ej_alternativo FOREIGN KEY (ejercicio_alternativo_id) REFERENCES ejercicios_catalogo(id) ON DELETE SET NULL
+  INDEX idx_ej_alternativo (ejercicio_alternativo_id)
 );
 
--- 6. Sesiones (Plan base del entrenador, plan alternativo ligero o plan propio del practicante)
-CREATE TABLE sesiones (
+-- 6. Sesiones
+CREATE TABLE IF NOT EXISTS sesiones (
   id INT AUTO_INCREMENT PRIMARY KEY,
   microciclo_id INT NOT NULL,
   practicante_id INT NULL,
@@ -90,13 +93,15 @@ CREATE TABLE sesiones (
   motivo_ajuste VARCHAR(160) NULL,
   observaciones TEXT NULL,
   creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_sesion_micro (microciclo_id),
+  INDEX idx_sesion_practicante (practicante_id),
+  INDEX idx_sesion_origen (sesion_origen_id),
   CONSTRAINT fk_sesion_micro FOREIGN KEY (microciclo_id) REFERENCES microciclos(id) ON DELETE CASCADE,
-  CONSTRAINT fk_sesion_practicante FOREIGN KEY (practicante_id) REFERENCES usuarios(id) ON DELETE SET NULL,
-  CONSTRAINT fk_sesion_origen FOREIGN KEY (sesion_origen_id) REFERENCES sesiones(id) ON DELETE SET NULL
+  CONSTRAINT fk_sesion_practicante FOREIGN KEY (practicante_id) REFERENCES usuarios(id) ON DELETE SET NULL
 );
 
 -- 7. Detalle de ejercicios por sesión
-CREATE TABLE sesion_ejercicios (
+CREATE TABLE IF NOT EXISTS sesion_ejercicios (
   id INT AUTO_INCREMENT PRIMARY KEY,
   sesion_id INT NOT NULL,
   ejercicio_id INT NOT NULL,
@@ -106,6 +111,18 @@ CREATE TABLE sesion_ejercicios (
   porcentaje_intensidad VARCHAR(60) NULL,
   pausa_seg INT NOT NULL DEFAULT 60,
   notas_tecnicas VARCHAR(255) NULL,
+  INDEX idx_se_sesion (sesion_id),
+  INDEX idx_se_ejercicio (ejercicio_id),
   CONSTRAINT fk_se_sesion FOREIGN KEY (sesion_id) REFERENCES sesiones(id) ON DELETE CASCADE,
   CONSTRAINT fk_se_ejercicio FOREIGN KEY (ejercicio_id) REFERENCES ejercicios_catalogo(id) ON DELETE RESTRICT
 );
+
+-- 8. Claves foráneas auto-referenciadas añadidas tras crear las tablas
+ALTER TABLE usuarios
+  ADD CONSTRAINT fk_usuario_entrenador FOREIGN KEY (entrenador_id) REFERENCES usuarios(id) ON DELETE SET NULL;
+
+ALTER TABLE ejercicios_catalogo
+  ADD CONSTRAINT fk_ej_alternativo FOREIGN KEY (ejercicio_alternativo_id) REFERENCES ejercicios_catalogo(id) ON DELETE SET NULL;
+
+ALTER TABLE sesiones
+  ADD CONSTRAINT fk_sesion_origen FOREIGN KEY (sesion_origen_id) REFERENCES sesiones(id) ON DELETE SET NULL;

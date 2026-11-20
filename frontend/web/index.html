@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MasCiWondo · Panel Web del Entrenador</title>
+  <link rel="stylesheet" href="css/estilos.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>MasCiWondo · Planificador de Ciclos TKD</h1>
+      <p class="subtitulo">Macrociclos, mesociclos, microciclos y control de sobrecarga</p>
+    </div>
+    <nav class="nav-links">
+      <a href="../mobile/index.html">Vista Móvil Practicante</a>
+    </nav>
+  </header>
+
+  <main class="contenedor">
+    <section class="panel">
+      <h2>1. Generar Nuevo Macrociclo</h2>
+      <form id="form-macrociclo" class="grid-form">
+        <label>
+          ID Entrenador
+          <input type="number" id="creadorId" value="1" min="1" required />
+        </label>
+
+        <label>
+          Título del Macrociclo
+          <input type="text" id="titulo" placeholder="Ej. Preparación Torneo Nacional 2027" required />
+        </label>
+
+        <label>
+          Fecha de Inicio (Lunes)
+          <input type="date" id="fechaInicio" required />
+        </label>
+
+        <label>
+          Fecha de Fin
+          <input type="date" id="fechaFin" required />
+        </label>
+
+        <label>
+          Objetivo Principal
+          <input type="text" id="objetivoPrincipal" placeholder="Ej. Pico competitivo Kyorugi" required />
+        </label>
+
+        <label>
+          Modalidad
+          <select id="modalidad">
+            <option value="kyorugi">Kyorugi</option>
+            <option value="poomsae">Poomsae</option>
+            <option value="mixto">Mixto</option>
+          </select>
+        </label>
+
+        <div class="span-2">
+          <h3>Mesociclo Inicial</h3>
+          <div class="grid-form">
+            <label>
+              Nombre Mesociclo
+              <input type="text" id="mesoNombre" value="Mesociclo 1 - Base" required />
+            </label>
+            <label>
+              Periodo
+              <select id="periodo">
+                <option value="preparacion_general">Preparación General</option>
+                <option value="preparacion_especial">Preparación Especial</option>
+                <option value="competitivo">Competitivo</option>
+                <option value="descarga">Descarga</option>
+              </select>
+            </label>
+            <label>
+              Semanas de Duración
+              <input type="number" id="semanasDuracion" value="4" min="1" max="12" required />
+            </label>
+          </div>
+        </div>
+
+        <div class="span-2 acciones">
+          <button type="submit" class="btn-primario">Generar Macrociclo</button>
+        </div>
+      </form>
+      <div id="resultado-macrociclo" class="resultado-box"></div>
+    </section>
+
+    <section class="panel">
+      <h2>2. Seguimiento de Sesiones y Alternativas Ligeras</h2>
+      <div class="barra-filtro">
+        <label>
+          Filtrar por Microciclo ID (opcional):
+          <input type="number" id="filtroMicrocicloId" placeholder="Ej. 1" />
+        </label>
+        <button type="button" id="btn-cargar-sesiones" class="btn-secundario">Cargar Sesiones</button>
+      </div>
+      <div id="lista-sesiones" class="lista-sesiones"></div>
+    </section>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/macrociclo.js"></script>
+  <script src="js/seguimiento.js"></script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  background: #0f172a;
+  color: #f8fafc;
+  min-height: 100vh;
+}
+
+.app-header {
+  background: #1e293b;
+  padding: 1.1rem 1rem;
+  border-bottom: 1px solid #334155;
+}
+
+.app-header h1 {
+  font-size: 1.35rem;
+}
+
+.app-header p {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  margin-top: 0.2rem;
+}
+
+.link-web {
+  display: inline-block;
+  margin-top: 0.6rem;
+  color: #38bdf8;
+  font-size: 0.85rem;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.app-main {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 1rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.card {
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid #334155;
+}
+
+.card h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.ayuda {
+  color: #cbd5e1;
+  font-size: 0.88rem;
+  margin-bottom: 0.85rem;
+}
+
+.stack {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.fila-controles {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: #e2e8f0;
+}
+
+input, select {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #475569;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 0.95rem;
+}
+
+button {
+  padding: 0.7rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.btn-azul {
+  background: #0284c7;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.btn-naranja {
+  background: #ea580c;
+  color: #ffffff;
+}
+
+.item-sesion {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.resultado-movil {
+  margin-top: 0.85rem;
+  background: #0f172a;
+  border-radius: 8px;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  color: #bae6fd;
+}

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MasCiWondo · App Practicante</title>
+  <link rel="stylesheet" href="css/movil.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>MasCiWondo</h1>
+    <p>Entrenamiento diario y autorregulación TKD</p>
+    <a href="../web/index.html" class="link-web">Ir a Panel Web Entrenador</a>
+  </header>
+
+  <main class="app-main">
+    <section class="card">
+      <h2>Mi Sesión</h2>
+      <div class="fila-controles">
+        <input type="number" id="inputMicrociclo" placeholder="Microciclo ID (ej. 1)" min="1" />
+        <button type="button" id="btnBuscarSesiones" class="btn-azul">Buscar</button>
+      </div>
+      <div id="contenedorSesiones" class="stack"></div>
+    </section>
+
+    <section class="card" id="panelSobrecarga">
+      <h2>¿Sientes sobrecarga o fatiga?</h2>
+      <p class="ayuda">Genera una versión más ligera de una sesión base sin perder el hilo del ciclo.</p>
+
+      <form id="formModoLigero" class="stack">
+        <label>
+          ID de Sesión Base del Entrenador
+          <input type="number" id="sesionBaseId" placeholder="Ej. 1" min="1" required />
+        </label>
+
+        <label>
+          Nivel de Ajuste
+          <select id="nivelAjuste">
+            <option value="ligero">Ligero (-25% volumen, RPE moderado)</option>
+            <option value="recuperacion">Recuperación (-40% volumen, menor impacto)</option>
+          </select>
+        </label>
+
+        <label>
+          RPE Reportado (1 a 10)
+          <input type="number" id="rpeReportado" value="8" min="1" max="10" required />
+        </label>
+
+        <label>
+          Motivo
+          <select id="motivoAjuste">
+            <option value="sobrecarga">Sobrecarga física / muscular</option>
+            <option value="fatiga">Fatiga acumulada / poco descanso</option>
+            <option value="molestia">Molestia leve</option>
+            <option value="falta_tiempo">Poco tiempo disponible</option>
+          </select>
+        </label>
+
+        <button type="submit" class="btn-naranja">Generar Plan Alternativo Ligero</button>
+      </form>
+
+      <div id="resultadoLigero" class="resultado-movil"></div>
+    </section>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/sesionDia.js"></script>
+  <script src="js/modoLigero.js"></script>
+</body>
+</html>
