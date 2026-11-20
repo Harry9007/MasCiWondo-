@@ -1,0 +1,147 @@
+const pool = require("../config/db");
+const { generarSemanaMicrociclo } = require("../../../shared/generadorCiclos");
+
+async function crearMacrociclo(req, res, next) {
+  const conn = await pool.getConnection();
+  try {
+    const {
+      creadorId,
+      titulo,
+      fechaInicio,
+      fechaFin,
+      objetivoPrincipal,
+      modalidad = "kyorugi",
+      mesociclos = []
+    } = req.body;
+
+    if (!creadorId || !titulo || !fechaInicio || !fechaFin || !objetivoPrincipal) {
+      return res.status(400).json({
+        error: "Faltan campos obligatorios: creadorId, titulo, fechaInicio, fechaFin, objetivoPrincipal"
+      });
+    }
+
+    await conn.beginTransaction();
+
+    const [macroRes] = await conn.query(
+      `INSERT INTO macrociclos (creador_id, titulo, fecha_inicio, fecha_fin, objetivo_principal)
+       VALUES (?, ?, ?, ?, ?)`,
+      [creadorId, titulo, fechaInicio, fechaFin, objetivoPrincipal]
+    );
+
+    const macrocicloId = macroRes.insertId;
+    let fechaCursor = new Date(`${fechaInicio}T00:00:00`);
+    let semanaGlobal = 1;
+
+    for (let m = 0; m < mesociclos.length; m++) {
+      const meso = mesociclos[m];
+      const semanasDuracion = Number(meso.semanasDuracion) || 4;
+      const periodo = meso.periodo || "preparacion_general";
+
+      const [mesoRes] = await conn.query(
+        `INSERT INTO mesociclos (
+          macrociclo_id, numero_meso, nombre, periodo,
+          enfoque_fuerza, enfoque_resistencia, enfoque_velocidad, enfoque_tecnico, semanas_duracion
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          macrocicloId,
+          m + 1,
+          meso.nombre || `Mesociclo ${m + 1}`,
+          periodo,
+          meso.enfoqueFuerza || "Fuerza base / adaptacion",
+          meso.enfoqueResistencia || "Capacidad aerobica",
+          meso.enfoqueVelocidad || "Coordinacion y reaccion",
+          meso.enfoqueTecnico || "Fundamentos de Taekwondo",
+          semanasDuracion
+        ]
+      );
+
+      const mesocicloId = mesoRes.insertId;
+
+      for (let s = 0; s < semanasDuracion; s++) {
+        const fechaLunesStr = fechaCursor.toISOString().slice(0, 10);
+        const esDescarga = periodo === "descarga" || (s + 1 === semanasDuracion && semanasDuracion >= 4);
+
+        const [microRes] = await conn.query(
+          `INSERT INTO microciclos (mesociclo_id, numero_semana, fecha_lunes, es_descarga, observaciones)
+           VALUES (?, ?, ?, ?, ?)`,
+          [mesocicloId, semanaGlobal, fechaLunesStr, esDescarga, meso.observaciones || null]
+        );
+
+        const microcicloId = microRes.insertId;
+        const semanaGenerada = generarSemanaMicrociclo({
+          periodo: esDescarga ? "descarga" : periodo,
+          modalidad,
+          diasActivos: meso.diasActivos || ["lunes", "martes", "miercoles", "jueves", "viernes"]
+        });
+
+        for (const sesion of semanaGenerada) {
+          const [sesRes] = await conn.query(
+            `INSERT INTO sesiones (microciclo_id, dia_semana, tipo_plan, lugar_terreno)
+             VALUES (?, ?, 'base_entrenador', ?)`,
+            [microcicloId, sesion.diaSemana, sesion.lugarTerreno]
+          );
+
+          const sesionId = sesRes.insertId;
+          for (let idx = 0; idx < sesion.ejercicios.length; idx++) {
+            const ej = sesion.ejercicios[idx];
+            await conn.query(
+              `INSERT INTO sesion_ejercicios (
+                sesion_id, ejercicio_id, orden, series,
+                repeticiones_o_tiempo, porcentaje_intensidad, pausa_seg, notas_tecnicas
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+              [
+                sesionId,
+                ej.ejercicioId,
+                idx + 1,
+                ej.series,
+                ej.repeticionesOTiempo,
+                ej.porcentajeIntensidad,
+                ej.pausaSeg,
+                ej.notasTecnicas
+              ]
+            );
+          }
+        }
+
+        semanaGlobal++;
+        fechaCursor.setDate(fechaCursor.getDate() + 7);
+      }
+    }
+
+    await conn.commit();
+    res.status(201).json({
+      mensaje: "Macrociclo creado correctamente",
+      macrocicloId,
+      semanasGeneradas: semanaGlobal - 1
+    });
+  } catch (error) {
+    await conn.rollback();
+    next(error);
+  } finally {
+    conn.release();
+  }
+}
+
+async function obtenerMacrocicloPorId(req, res, next) {
+  try {
+    const { id } = req.params;
+    const [macros] = await pool.query("SELECT * FROM macrociclos WHERE id = ?", [id]);
+    if (macros.length === 0) {
+      return res.status(404).json({ error: "Macrociclo no encontrado" });
+    }
+
+    const [mesos] = await pool.query(
+      "SELECT * FROM mesociclos WHERE macrociclo_id = ? ORDER BY numero_meso ASC",
+      [id]
+    );
+
+    res.json({
+      macrociclo: macros[0],
+      mesociclos: mesos
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+module.exports = { crearMacrociclo, obtenerMacrocicloPorId };
