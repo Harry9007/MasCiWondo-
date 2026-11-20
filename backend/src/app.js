@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const authRoutes = require("./routes/auth.routes");
 const ciclosRoutes = require("./routes/ciclos.routes");
 const sesionesRoutes = require("./routes/sesiones.routes");
 
@@ -12,6 +13,7 @@ app.get("/api/health", (req, res) => {
   res.json({ ok: true, servicio: "taekwondo-ciclos-api" });
 });
 
+app.use("/api/auth", authRoutes);
 app.use("/api/ciclos", ciclosRoutes);
 app.use("/api/sesiones", sesionesRoutes);
 

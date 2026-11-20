@@ -38,6 +38,19 @@ function aplicarContextoUsuarioMovil(usuario) {
   }
 }
 
+function exigirSesionActivaMovil(
+  mensajeCustom = "Inicia sesión o crea una cuenta para asociar tu actividad al perfil."
+) {
+  const usuario = obtenerUsuarioActivoMovil();
+  if (!usuario) {
+    const msgAuth = document.getElementById("mensaje-auth");
+    if (msgAuth) msgAuth.textContent = mensajeCustom;
+    document.getElementById("seccion-cuenta")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    return null;
+  }
+  return usuario;
+}
+
 async function cargarListaEntrenadoresMovil() {
   const selectEntrenador = document.getElementById("regEntrenadorId");
   if (!selectEntrenador) return;
@@ -100,6 +113,9 @@ if (formRegistroMovil) {
         })
       });
       guardarUsuarioActivoMovil(data.usuario);
+      if (data.usuario?.rol === "entrenador") {
+        await cargarListaEntrenadoresMovil();
+      }
       if (msg) msg.textContent = `Cuenta creada para ${data.usuario.nombre}.`;
       formRegistroMovil.reset();
     } catch (err) {
@@ -116,6 +132,19 @@ if (btnCerrarSesionMovil) {
     if (msg) msg.textContent = "Sesión cerrada.";
   });
 }
+
+document.querySelectorAll(".auth-tab-movil").forEach((tab) => {
+  tab.addEventListener("click", () => {
+    const targetId = tab.getAttribute("data-target");
+
+    document.querySelectorAll(".auth-tab-movil").forEach((t) => t.classList.remove("activa"));
+    tab.classList.add("activa");
+
+    document.querySelectorAll(".auth-form-panel-movil").forEach((panel) => {
+      panel.classList.toggle("activa", panel.id === targetId);
+    });
+  });
+});
 
 aplicarContextoUsuarioMovil(obtenerUsuarioActivoMovil());
 cargarListaEntrenadoresMovil();

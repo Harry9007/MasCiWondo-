@@ -6,6 +6,7 @@ async function crearMacrociclo(req, res, next) {
   try {
     const {
       creadorId,
+      usuarioSolicitanteId,
       titulo,
       fechaInicio,
       fechaFin,
@@ -14,9 +15,32 @@ async function crearMacrociclo(req, res, next) {
       mesociclos = []
     } = req.body;
 
-    if (!creadorId || !titulo || !fechaInicio || !fechaFin || !objetivoPrincipal) {
+    const solicitanteId = Number(usuarioSolicitanteId || creadorId);
+    if (!solicitanteId) {
+      return res.status(401).json({
+        error: "Debes iniciar sesión o registrarte para generar macrociclos, mesociclos o entrenamientos."
+      });
+    }
+
+    const [usuarios] = await conn.query(
+      "SELECT id, rol, entrenador_id FROM usuarios WHERE id = ? LIMIT 1",
+      [solicitanteId]
+    );
+    if (usuarios.length === 0) {
+      return res.status(401).json({
+        error: "Usuario no encontrado. Regístrate o inicia sesión nuevamente."
+      });
+    }
+
+    const usuarioBD = usuarios[0];
+    const creadorFinalId =
+      usuarioBD.rol === "practicante" && usuarioBD.entrenador_id
+        ? Number(usuarioBD.entrenador_id)
+        : Number(usuarioBD.id);
+
+    if (!titulo || !fechaInicio || !fechaFin || !objetivoPrincipal) {
       return res.status(400).json({
-        error: "Faltan campos obligatorios: creadorId, titulo, fechaInicio, fechaFin, objetivoPrincipal"
+        error: "Faltan campos obligatorios: titulo, fechaInicio, fechaFin, objetivoPrincipal"
       });
     }
 
@@ -31,7 +55,7 @@ async function crearMacrociclo(req, res, next) {
     const [macroRes] = await conn.query(
       `INSERT INTO macrociclos (creador_id, titulo, fecha_inicio, fecha_fin, objetivo_principal)
        VALUES (?, ?, ?, ?, ?)`,
-      [creadorId, titulo, fechaInicio, fechaFin, objetivoPrincipal]
+      [creadorFinalId, titulo, fechaInicio, fechaFin, objetivoPrincipal]
     );
 
     const macrocicloId = macroRes.insertId;

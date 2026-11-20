@@ -3,25 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MasCiWondo · Panel Web del Entrenador</title>
+  <title>MasCiWondo · Planificador de Ciclos TKD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/estilos.css" />
 </head>
 <body>
   <header class="topbar">
     <div>
-      <h1>MasCiWondo · Planificador de Ciclos TKD</h1>
-      <p class="subtitulo">Macrociclos, mesociclos, microciclos y control de sobrecarga</p>
+      <h1>🥋 MasCiWondo</h1>
+      <p class="subtitulo">Planificador de macrociclos, mesociclos, microciclos y control de sobrecarga TKD</p>
     </div>
     <nav class="nav-links">
+      <a href="macrociclo.html">Generar Macrociclo</a>
       <a href="../mobile/index.html">Vista Móvil Practicante</a>
     </nav>
   </header>
 
   <main class="contenedor">
+    <!-- Bloque de Cuenta (Tarjeta Login estilo limpio + Pestaña Registro) -->
     <section class="panel" id="seccion-cuenta">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+      <div class="cuenta-header">
         <div>
-          <h2>Cuenta de Usuario</h2>
           <p id="estado-sesion-usuario" class="subtitulo">No has iniciado sesión.</p>
         </div>
         <button type="button" id="btn-cerrar-sesion" class="btn-secundario" style="display:none;">
@@ -29,24 +32,52 @@
         </button>
       </div>
 
-      <div id="formularios-auth" class="grid-form" style="margin-top:1rem;">
-        <!-- Formulario de Inicio de Sesión -->
-        <form id="form-login" class="stack">
-          <h3>Iniciar Sesión</h3>
-          <label>
-            Correo electrónico
-            <input type="email" id="loginEmail" placeholder="tu@correo.com" required />
-          </label>
-          <label>
-            Contraseña
-            <input type="password" id="loginPassword" placeholder="********" required />
-          </label>
-          <button type="submit" class="btn-primario">Entrar</button>
+      <div id="formularios-auth" class="auth-centrado-wrapper">
+        <div class="auth-tabs" role="tablist">
+          <button type="button" id="tab-login" class="auth-tab activa" data-target="form-login">
+            Iniciar Sesión
+          </button>
+          <button type="button" id="tab-registro" class="auth-tab" data-target="form-registro">
+            Crear Cuenta
+          </button>
+        </div>
+
+        <!-- Tarjeta 1: Iniciar Sesión -->
+        <form id="form-login" class="card-acceso auth-form-panel activo">
+          <h2>🥋 MasCiWondo</h2>
+          <p class="bienvenida-acceso">Bienvenido</p>
+
+          <input
+            type="email"
+            id="loginEmail"
+            placeholder="Correo electrónico"
+            required
+          />
+
+          <input
+            type="password"
+            id="loginPassword"
+            placeholder="Contraseña"
+            required
+          />
+
+          <button type="submit" class="btn-acceso">
+            Iniciar Sesión
+          </button>
+
+          <p class="pie-acceso">
+            ¿No tienes cuenta?
+            <button type="button" class="link-inline-tab" data-ir-registro="true">
+              Registrarse
+            </button>
+          </p>
         </form>
 
-        <!-- Formulario de Registro -->
-        <form id="form-registro" class="stack">
-          <h3>Crear Cuenta</h3>
+        <!-- Tarjeta 2: Crear Cuenta -->
+        <form id="form-registro" class="card-acceso stack auth-form-panel">
+          <h2>🥋 MasCiWondo</h2>
+          <p class="bienvenida-acceso">Crea tu cuenta</p>
+
           <label>
             Nombre completo
             <input type="text" id="regNombre" placeholder="Ej. Valentina Restrepo" required />
@@ -88,15 +119,22 @@
               <option value="">Sin asignar</option>
             </select>
           </label>
-          <button type="submit" class="btn-secundario">Registrarme</button>
+          <button type="submit" class="btn-acceso">Registrarme</button>
         </form>
       </div>
 
-      <div id="mensaje-auth" class="resultado-box" style="margin-top:0.75rem;"></div>
+      <div id="mensaje-auth" class="resultado-box" style="margin-top:0.85rem;"></div>
     </section>
 
-    <section class="panel">
-      <h2>1. Generar Nuevo Macrociclo</h2>
+    <!-- Paso 1: Generar Macrociclo -->
+    <section class="panel" id="panel-macrociclo">
+      <div class="seccion-encabezado">
+        <div>
+          <span class="badge-paso">Paso 1 · Planificación</span>
+          <h2>Generar Nuevo Macrociclo</h2>
+        </div>
+      </div>
+
       <form id="form-macrociclo" class="grid-form">
         <label>
           ID Entrenador
@@ -162,8 +200,15 @@
       <div id="resultado-macrociclo" class="resultado-box"></div>
     </section>
 
-    <section class="panel">
-      <h2>2. Seguimiento de Sesiones y Alternativas Ligeras</h2>
+    <!-- Paso 2: Seguimiento -->
+    <section class="panel" id="panel-seguimiento">
+      <div class="seccion-encabezado">
+        <div>
+          <span class="badge-paso">Paso 2 · Control y Sobrecarga</span>
+          <h2>Seguimiento de Sesiones y Alternativas Ligeras</h2>
+        </div>
+      </div>
+
       <div class="barra-filtro">
         <label>
           Filtrar por Microciclo ID (opcional):

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MasCiWondo · Generar Macrociclo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/estilos.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>🥋 MasCiWondo</h1>
+      <p class="subtitulo">Planificador de macrociclos, mesociclos, microciclos y control de sobrecarga TKD</p>
+    </div>
+    <nav class="nav-links">
+      <a href="index.html">Inicio / Cuenta</a>
+      <a href="../mobile/index.html">Vista Móvil Practicante</a>
+    </nav>
+  </header>
+
+  <main class="contenedor">
+    <!-- Estado de sesión y acceso rápido -->
+    <section class="panel" id="seccion-cuenta">
+      <div class="cuenta-header">
+        <div>
+          <span class="badge-paso">Estado de Sesión</span>
+          <p id="estado-sesion-usuario" class="subtitulo">No has iniciado sesión.</p>
+          <div id="mensaje-auth" class="resultado-box" style="margin-top:0.5rem;"></div>
+        </div>
+        <div class="acciones-sesion">
+          <a href="index.html" id="btn-ir-login" class="btn-secundario">Iniciar Sesión / Registro</a>
+          <button type="button" id="btn-cerrar-sesion" class="btn-secundario" style="display:none;">
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
+
+      <!-- Contenedor oculto para mantener compatibilidad con auth.js -->
+      <div id="formularios-auth" style="display:none;"></div>
+    </section>
+
+    <!-- Aviso cuando no hay sesión iniciada -->
+    <section class="panel" id="aviso-sin-sesion" style="display:none; text-align:center;">
+      <span class="badge-paso">Acceso Restringido</span>
+      <h2>Inicia sesión para gestionar macrociclos</h2>
+      <p class="ayuda-corta">
+        Para crear macrociclos, mesociclos y consultar sesiones necesitas tener una sesión activa.
+      </p>
+      <div style="margin-top:0.85rem;">
+        <a href="index.html" class="btn-primario">Ir a Iniciar Sesión</a>
+      </div>
+    </section>
+
+    <!-- Paso 1: Generar Macrociclo -->
+    <section class="panel" id="panel-macrociclo">
+      <div class="seccion-encabezado">
+        <div>
+          <span class="badge-paso">Paso 1 · Planificación</span>
+          <h2>Generar Nuevo Macrociclo</h2>
+          <p class="ayuda-corta">Configura el macrociclo, el mesociclo inicial y las sesiones semanales.</p>
+        </div>
+      </div>
+
+      <form id="form-macrociclo" class="grid-form">
+        <label>
+          ID Entrenador
+          <input type="number" id="creadorId" value="1" min="1" required />
+        </label>
+
+        <label>
+          Título del Macrociclo
+          <input type="text" id="titulo" placeholder="Ej. Preparación Torneo Nacional 2027" required />
+        </label>
+
+        <label>
+          Fecha de Inicio (Lunes)
+          <input type="date" id="fechaInicio" required />
+        </label>
+
+        <label>
+          Fecha de Fin
+          <input type="date" id="fechaFin" required />
+        </label>
+
+        <label>
+          Objetivo Principal
+          <input type="text" id="objetivoPrincipal" placeholder="Ej. Pico competitivo Kyorugi" required />
+        </label>
+
+        <label>
+          Modalidad
+          <select id="modalidad">
+            <option value="kyorugi">Kyorugi</option>
+            <option value="poomsae">Poomsae</option>
+            <option value="mixto">Mixto</option>
+          </select>
+        </label>
+
+        <div class="span-2 subcard">
+          <h3>Mesociclo Inicial</h3>
+          <div class="grid-form">
+            <label>
+              Nombre Mesociclo
+              <input type="text" id="mesoNombre" value="Mesociclo 1 - Base" required />
+            </label>
+            <label>
+              Periodo
+              <select id="periodo">
+                <option value="preparacion_general">Preparación General</option>
+                <option value="preparacion_especial">Preparación Especial</option>
+                <option value="competitivo">Competitivo</option>
+                <option value="descarga">Descarga</option>
+              </select>
+            </label>
+            <label>
+              Semanas de Duración
+              <input type="number" id="semanasDuracion" value="4" min="1" max="12" required />
+            </label>
+          </div>
+        </div>
+
+        <div class="span-2 acciones">
+          <button type="submit" class="btn-primario">Generar Macrociclo</button>
+        </div>
+      </form>
+      <div id="resultado-macrociclo" class="resultado-box"></div>
+    </section>
+
+    <!-- Paso 2: Seguimiento de Sesiones -->
+    <section class="panel" id="panel-seguimiento">
+      <div class="seccion-encabezado">
+        <div>
+          <span class="badge-paso">Paso 2 · Control y Sobrecarga</span>
+          <h2>Seguimiento de Sesiones y Alternativas Ligeras</h2>
+        </div>
+      </div>
+
+      <div class="barra-filtro">
+        <label>
+          Filtrar por Microciclo ID (opcional):
+          <input type="number" id="filtroMicrocicloId" placeholder="Ej. 1" />
+        </label>
+        <button type="button" id="btn-cargar-sesiones" class="btn-secundario">Cargar Sesiones</button>
+      </div>
+      <div id="lista-sesiones" class="lista-sesiones"></div>
+    </section>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/macrociclo.js"></script>
+  <script src="js/seguimiento.js"></script>
+</body>
+</html>

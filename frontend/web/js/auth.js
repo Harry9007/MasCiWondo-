@@ -1,5 +1,10 @@
 const STORAGE_KEY_USUARIO = "masciwondo_usuario";
 
+function esRutaMacrociclo() {
+  const rutaActual = window.location.pathname || "";
+  return rutaActual.endsWith("/macrociclo.html") || rutaActual.endsWith("macrociclo.html");
+}
+
 function obtenerUsuarioActivo() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_USUARIO);
@@ -19,10 +24,29 @@ function limpiarUsuarioActivo() {
   aplicarContextoUsuario(null);
 }
 
+function irAMacrocicloSiCorresponde() {
+  if (!esRutaMacrociclo()) {
+    setTimeout(() => {
+      window.location.href = "macrociclo.html";
+    }, 500);
+  }
+}
+
+function protegerRutaMacrociclo(usuario = obtenerUsuarioActivo()) {
+  if (esRutaMacrociclo() && !usuario) {
+    window.location.replace("index.html");
+  }
+}
+
 function aplicarContextoUsuario(usuario) {
   const estadoEl = document.getElementById("estado-sesion-usuario");
   const btnLogout = document.getElementById("btn-cerrar-sesion");
   const formsAuth = document.getElementById("formularios-auth");
+  const btnIrLogin = document.getElementById("btn-ir-login");
+
+  if (btnIrLogin) {
+    btnIrLogin.style.display = usuario ? "none" : "inline-block";
+  }
 
   if (usuario) {
     if (estadoEl) {
@@ -44,6 +68,50 @@ function aplicarContextoUsuario(usuario) {
     if (estadoEl) estadoEl.textContent = "No has iniciado sesión.";
     if (btnLogout) btnLogout.style.display = "none";
     if (formsAuth) formsAuth.style.display = "";
+  }
+
+  actualizarBloqueoPorSesion(usuario);
+}
+
+function actualizarBloqueoPorSesion(usuario) {
+  const formMacro = document.getElementById("form-macrociclo");
+  const resultadoMacro = document.getElementById("resultado-macrociclo");
+  const btnGenerar = formMacro?.querySelector('button[type="submit"]');
+  const panelMacro = document.getElementById("panel-macrociclo");
+  const panelSeguimiento = document.getElementById("panel-seguimiento");
+  const avisoSinSesion = document.getElementById("aviso-sin-sesion");
+
+  const haySesion = Boolean(usuario);
+
+  if (panelMacro) {
+    panelMacro.classList.toggle("bloqueado-sesion", !haySesion);
+    panelMacro.style.display = haySesion ? "" : "none";
+  }
+
+  if (panelSeguimiento) {
+    panelSeguimiento.style.display = haySesion ? "" : "none";
+  }
+
+  if (avisoSinSesion) {
+    avisoSinSesion.style.display = haySesion ? "none" : "block";
+  }
+
+  if (!formMacro) return;
+
+  if (!haySesion) {
+    if (btnGenerar) btnGenerar.disabled = true;
+    if (resultadoMacro) {
+      resultadoMacro.textContent =
+        "Debes iniciar sesión para generar macrociclos, mesociclos y entrenamientos semanales.";
+    }
+  } else {
+    if (btnGenerar) btnGenerar.disabled = false;
+    if (
+      resultadoMacro &&
+      resultadoMacro.textContent.includes("Debes iniciar sesión para generar macrociclos")
+    ) {
+      resultadoMacro.textContent = "";
+    }
   }
 }
 
@@ -78,8 +146,9 @@ if (formLogin) {
         })
       });
       guardarUsuarioActivo(data.usuario);
-      if (msg) msg.textContent = `Bienvenido/a, ${data.usuario.nombre}.`;
+      if (msg) msg.textContent = `Bienvenido/a, ${data.usuario.nombre}. Redirigiendo a macrociclos...`;
       formLogin.reset();
+      irAMacrocicloSiCorresponde();
     } catch (err) {
       if (msg) msg.textContent = `Error: ${err.message}`;
     }
@@ -109,8 +178,12 @@ if (formRegistro) {
         })
       });
       guardarUsuarioActivo(data.usuario);
-      if (msg) msg.textContent = `Cuenta creada para ${data.usuario.nombre}.`;
+      if (data.usuario?.rol === "entrenador") {
+        await cargarListaEntrenadores();
+      }
+      if (msg) msg.textContent = `Cuenta creada para ${data.usuario.nombre}. Redirigiendo a macrociclos...`;
       formRegistro.reset();
+      irAMacrocicloSiCorresponde();
     } catch (err) {
       if (msg) msg.textContent = `Error: ${err.message}`;
     }
@@ -123,9 +196,44 @@ if (btnCerrarSesion) {
     limpiarUsuarioActivo();
     const msg = document.getElementById("mensaje-auth");
     if (msg) msg.textContent = "Sesión cerrada.";
+    protegerRutaMacrociclo(null);
   });
 }
 
+function exigirSesionActiva(
+  mensajeCustom = "Debes iniciar sesión o crear una cuenta antes de generar ciclos o entrenamientos."
+) {
+  const usuario = obtenerUsuarioActivo();
+  if (!usuario) {
+    const msgAuth = document.getElementById("mensaje-auth");
+    if (msgAuth) msgAuth.textContent = mensajeCustom;
+    document.getElementById("seccion-cuenta")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    return null;
+  }
+  return usuario;
+}
+
+document.querySelectorAll(".auth-tab").forEach((tab) => {
+  tab.addEventListener("click", () => {
+    const targetId = tab.getAttribute("data-target");
+
+    document.querySelectorAll(".auth-tab").forEach((t) => t.classList.remove("activa"));
+    tab.classList.add("activa");
+
+    document.querySelectorAll(".auth-form-panel").forEach((panel) => {
+      panel.classList.toggle("activo", panel.id === targetId);
+    });
+  });
+});
+
+document.querySelectorAll("[data-ir-registro='true']").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.getElementById("tab-registro")?.click();
+  });
+});
+
 // Inicialización al cargar la página
-aplicarContextoUsuario(obtenerUsuarioActivo());
+const usuarioInicial = obtenerUsuarioActivo();
+protegerRutaMacrociclo(usuarioInicial);
+aplicarContextoUsuario(usuarioInicial);
 cargarListaEntrenadores();

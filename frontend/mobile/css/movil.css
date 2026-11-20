@@ -128,3 +128,81 @@ button {
   white-space: pre-wrap;
   color: #bae6fd;
 }
+
+.cuenta-header-movil {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid #334155;
+}
+
+.btn-compacto {
+  padding: 0.45rem 0.75rem;
+  font-size: 0.82rem;
+}
+
+.badge-movil {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.14);
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  margin-bottom: 0.35rem;
+}
+
+.badge-naranja {
+  color: #fb923c;
+  background: rgba(251, 146, 60, 0.15);
+}
+
+.auth-wrapper-movil {
+  margin-top: 0.85rem;
+}
+
+.auth-tabs-movil {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+  background: #0f172a;
+  padding: 0.3rem;
+  border-radius: 10px;
+  margin-bottom: 0.85rem;
+}
+
+.auth-tab-movil {
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.auth-tab-movil.activa {
+  background: #1e293b;
+  color: #f8fafc;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.subcard-movil {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 0.9rem;
+}
+
+.auth-form-panel-movil {
+  display: none;
+}
+
+.auth-form-panel-movil.activa {
+  display: grid;
+}
