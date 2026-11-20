@@ -14,6 +14,83 @@
   </header>
 
   <main class="app-main">
+    <section class="card" id="seccion-cuenta">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+        <div>
+          <h2>Cuenta de Usuario</h2>
+          <p id="estado-sesion-usuario" class="ayuda" style="margin-bottom:0.25rem;">No has iniciado sesión.</p>
+        </div>
+        <button type="button" id="btn-cerrar-sesion" class="btn-azul" style="display:none; padding:0.45rem 0.8rem; font-size:0.85rem;">
+          Cerrar sesión
+        </button>
+      </div>
+
+      <div id="formularios-auth" class="stack" style="margin-top:0.85rem;">
+        <!-- Formulario de Inicio de Sesión -->
+        <form id="form-login" class="stack">
+          <h3>Iniciar Sesión</h3>
+          <label>
+            Correo electrónico
+            <input type="email" id="loginEmail" placeholder="tu@correo.com" required />
+          </label>
+          <label>
+            Contraseña
+            <input type="password" id="loginPassword" placeholder="********" required />
+          </label>
+          <button type="submit" class="btn-azul">Entrar</button>
+        </form>
+
+        <!-- Formulario de Registro -->
+        <form id="form-registro" class="stack" style="margin-top:0.5rem; padding-top:0.85rem; border-top:1px solid #334155;">
+          <h3>Crear Cuenta</h3>
+          <label>
+            Nombre completo
+            <input type="text" id="regNombre" placeholder="Ej. Valentina Restrepo" required />
+          </label>
+          <label>
+            Correo electrónico
+            <input type="email" id="regEmail" placeholder="valentina@correo.com" required />
+          </label>
+          <label>
+            Contraseña (mín. 6 caracteres)
+            <input type="password" id="regPassword" minlength="6" required />
+          </label>
+          <label>
+            Rol
+            <select id="regRol">
+              <option value="practicante">Practicante</option>
+              <option value="entrenador">Entrenador</option>
+            </select>
+          </label>
+          <label>
+            Modalidad
+            <select id="regModalidad">
+              <option value="kyorugi">Kyorugi</option>
+              <option value="poomsae">Poomsae</option>
+              <option value="mixto">Mixto</option>
+            </select>
+          </label>
+          <label>
+            Nivel
+            <select id="regNivel">
+              <option value="iniciacion">Iniciación</option>
+              <option value="intermedio" selected>Intermedio</option>
+              <option value="competitivo">Competitivo</option>
+            </select>
+          </label>
+          <label id="campo-entrenador">
+            Entrenador asignado (opcional)
+            <select id="regEntrenadorId">
+              <option value="">Sin asignar</option>
+            </select>
+          </label>
+          <button type="submit" class="btn-naranja">Registrarme</button>
+        </form>
+      </div>
+
+      <div id="mensaje-auth" class="resultado-movil" style="margin-top:0.75rem;"></div>
+    </section>
+
     <section class="card">
       <h2>Mi Sesión</h2>
       <div class="fila-controles">
@@ -64,6 +141,7 @@
   </main>
 
   <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
   <script src="js/sesionDia.js"></script>
   <script src="js/modoLigero.js"></script>
 </body>

@@ -18,6 +18,83 @@
   </header>
 
   <main class="contenedor">
+    <section class="panel" id="seccion-cuenta">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+        <div>
+          <h2>Cuenta de Usuario</h2>
+          <p id="estado-sesion-usuario" class="subtitulo">No has iniciado sesión.</p>
+        </div>
+        <button type="button" id="btn-cerrar-sesion" class="btn-secundario" style="display:none;">
+          Cerrar sesión
+        </button>
+      </div>
+
+      <div id="formularios-auth" class="grid-form" style="margin-top:1rem;">
+        <!-- Formulario de Inicio de Sesión -->
+        <form id="form-login" class="stack">
+          <h3>Iniciar Sesión</h3>
+          <label>
+            Correo electrónico
+            <input type="email" id="loginEmail" placeholder="tu@correo.com" required />
+          </label>
+          <label>
+            Contraseña
+            <input type="password" id="loginPassword" placeholder="********" required />
+          </label>
+          <button type="submit" class="btn-primario">Entrar</button>
+        </form>
+
+        <!-- Formulario de Registro -->
+        <form id="form-registro" class="stack">
+          <h3>Crear Cuenta</h3>
+          <label>
+            Nombre completo
+            <input type="text" id="regNombre" placeholder="Ej. Valentina Restrepo" required />
+          </label>
+          <label>
+            Correo electrónico
+            <input type="email" id="regEmail" placeholder="valentina@correo.com" required />
+          </label>
+          <label>
+            Contraseña (mín. 6 caracteres)
+            <input type="password" id="regPassword" minlength="6" required />
+          </label>
+          <label>
+            Rol
+            <select id="regRol">
+              <option value="practicante">Practicante</option>
+              <option value="entrenador">Entrenador</option>
+            </select>
+          </label>
+          <label>
+            Modalidad
+            <select id="regModalidad">
+              <option value="kyorugi">Kyorugi</option>
+              <option value="poomsae">Poomsae</option>
+              <option value="mixto">Mixto</option>
+            </select>
+          </label>
+          <label>
+            Nivel
+            <select id="regNivel">
+              <option value="iniciacion">Iniciación</option>
+              <option value="intermedio" selected>Intermedio</option>
+              <option value="competitivo">Competitivo</option>
+            </select>
+          </label>
+          <label id="campo-entrenador">
+            Entrenador asignado (opcional)
+            <select id="regEntrenadorId">
+              <option value="">Sin asignar</option>
+            </select>
+          </label>
+          <button type="submit" class="btn-secundario">Registrarme</button>
+        </form>
+      </div>
+
+      <div id="mensaje-auth" class="resultado-box" style="margin-top:0.75rem;"></div>
+    </section>
+
     <section class="panel">
       <h2>1. Generar Nuevo Macrociclo</h2>
       <form id="form-macrociclo" class="grid-form">
@@ -99,6 +176,7 @@
   </main>
 
   <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
   <script src="js/macrociclo.js"></script>
   <script src="js/seguimiento.js"></script>
 </body>
