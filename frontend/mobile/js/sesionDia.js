@@ -13,14 +13,24 @@ async function buscarSesionesMovil() {
     }
 
     contenedor.innerHTML = data.sesiones
-      .map(
-        (ses) => `
+      .map((ses) => {
+        const ejerciciosTexto = (ses.ejercicios || [])
+          .map(
+            (ej) =>
+              `• ${ej.ejercicio_nombre}: ${ej.series} series (${ej.repeticiones_o_tiempo})`
+          )
+          .join("<br>");
+
+        return `
           <div class="item-sesion">
             <strong>ID #${ses.id}</strong> · ${ses.dia_semana.toUpperCase()} (${ses.tipo_plan})
             <div><small>Terreno: ${ses.lugar_terreno} · Microciclo #${ses.microciclo_id}</small></div>
+            <div style="margin-top: 0.45rem; font-size: 0.85rem;">
+              ${ejerciciosTexto || "Sin ejercicios registrados"}
+            </div>
           </div>
-        `
-      )
+        `;
+      })
       .join("");
   } catch (error) {
     contenedor.innerHTML = `<p>Error: ${error.message}</p>`;

@@ -20,6 +20,12 @@ async function crearMacrociclo(req, res, next) {
       });
     }
 
+    if (!Array.isArray(mesociclos) || mesociclos.length === 0) {
+      return res.status(400).json({
+        error: "Debes incluir al menos un mesociclo para generar el plan"
+      });
+    }
+
     await conn.beginTransaction();
 
     const [macroRes] = await conn.query(
@@ -59,7 +65,8 @@ async function crearMacrociclo(req, res, next) {
 
       for (let s = 0; s < semanasDuracion; s++) {
         const fechaLunesStr = fechaCursor.toISOString().slice(0, 10);
-        const esDescarga = periodo === "descarga" || (s + 1 === semanasDuracion && semanasDuracion >= 4);
+        const esDescarga =
+          periodo === "descarga" || (s + 1 === semanasDuracion && semanasDuracion >= 4);
 
         const [microRes] = await conn.query(
           `INSERT INTO microciclos (mesociclo_id, numero_semana, fecha_lunes, es_descarga, observaciones)
@@ -144,4 +151,79 @@ async function obtenerMacrocicloPorId(req, res, next) {
   }
 }
 
-module.exports = { crearMacrociclo, obtenerMacrocicloPorId };
+async function obtenerDetalleCiclo(req, res, next) {
+  try {
+    const { id } = req.params;
+
+    const [macros] = await pool.query("SELECT * FROM macrociclos WHERE id = ?", [id]);
+    if (macros.length === 0) {
+      return res.status(404).json({ error: "Macrociclo no encontrado" });
+    }
+
+    const [mesos] = await pool.query(
+      "SELECT * FROM mesociclos WHERE macrociclo_id = ? ORDER BY numero_meso ASC",
+      [id]
+    );
+
+    const mesoIds = mesos.map((m) => m.id);
+    let micros = [];
+    if (mesoIds.length > 0) {
+      const [microRows] = await pool.query(
+        `SELECT * FROM microciclos WHERE mesociclo_id IN (${mesoIds.map(() => "?").join(",")}) ORDER BY numero_semana ASC`,
+        mesoIds
+      );
+      micros = microRows;
+    }
+
+    const microIds = micros.map((mc) => mc.id);
+    let sesionesConEjercicios = [];
+    if (microIds.length > 0) {
+      const [sesRows] = await pool.query(
+        `SELECT * FROM sesiones WHERE microciclo_id IN (${microIds.map(() => "?").join(",")}) ORDER BY id ASC`,
+        microIds
+      );
+
+      const sesIds = sesRows.map((s) => s.id);
+      let detalleRows = [];
+      if (sesIds.length > 0) {
+        const [det] = await pool.query(
+          `SELECT se.id, se.sesion_id, se.ejercicio_id, se.orden, se.series,
+                  se.repeticiones_o_tiempo, se.porcentaje_intensidad, se.pausa_seg, se.notas_tecnicas,
+                  ec.nombre AS ejercicio_nombre, ec.categoria, ec.impacto
+           FROM sesion_ejercicios se
+           INNER JOIN ejercicios_catalogo ec ON se.ejercicio_id = ec.id
+           WHERE se.sesion_id IN (${sesIds.map(() => "?").join(",")})
+           ORDER BY se.sesion_id ASC, se.orden ASC`,
+          sesIds
+        );
+        detalleRows = det;
+      }
+
+      const porSesion = new Map();
+      for (const d of detalleRows) {
+        if (!porSesion.has(d.sesion_id)) porSesion.set(d.sesion_id, []);
+        porSesion.get(d.sesion_id).push(d);
+      }
+
+      sesionesConEjercicios = sesRows.map((s) => ({
+        ...s,
+        ejercicios: porSesion.get(s.id) || []
+      }));
+    }
+
+    res.json({
+      macrociclo: macros[0],
+      mesociclos: mesos,
+      microciclos: micros,
+      sesiones: sesionesConEjercicios
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+module.exports = {
+  crearMacrociclo,
+  obtenerMacrocicloPorId,
+  obtenerDetalleCiclo
+};
