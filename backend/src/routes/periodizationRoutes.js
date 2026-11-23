@@ -1,76 +1,185 @@
-import { Router } from 'express';
-import {
-  createFullPeriodizationPlan,
-  applyFatigueAdjustmentToSession,
-} from '../services/periodizationService.js';
+const express = require("express");
+const pool = require("../db");
+const {
+  resolveDateRange,
+  generatePeriodizationPlan,
+  adjustSessionForFatigue,
+} = require("../../shared/periodizationEngine");
 
-export function createPeriodizationRouter(pool) {
-  const router = Router();
+const router = express.Router();
 
-  router.post('/macrociclos/generar', async (req, res) => {
-    try {
-      const { creador_id, titulo } = req.body;
-      if (!creador_id || !titulo) {
-        return res.status(400).json({ error: 'creador_id y titulo son obligatorios' });
-      }
+router.post("/macrociclos/generar", async (req, res) => {
+  const {
+    creador_id,
+    practicante_id = null,
+    titulo,
+    objetivo_principal = "Desarrollo integral y rendimiento",
+    modelo_periodizacion = "atr",
+    granularidad_generacion = "mes",
+    referenceDate,
+    fecha_inicio,
+    fecha_fin,
+    modalidad = "mixto",
+    dias_entrenamiento = ["lunes", "miercoles", "viernes"],
+  } = req.body;
 
-      const result = await createFullPeriodizationPlan(pool, req.body);
-      return res.status(201).json({ ok: true, data: result });
-    } catch (err) {
-      console.error('Error al generar macrociclo:', err);
-      return res.status(500).json({ error: 'No se pudo generar el plan de periodización' });
-    }
+  if (!creador_id || !titulo) {
+    return res.status(400).json({ error: "creador_id y titulo son obligatorios" });
+  }
+
+  const range = resolveDateRange({
+    granularity: granularidad_generacion,
+    referenceDate,
+    startDate: fecha_inicio,
+    endDate: fecha_fin,
   });
 
-  router.post('/sesiones/:id/ajustar-fatiga', async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { rpe_reportado = 8, motivo_ajuste = 'Fatiga reportada por practicante' } = req.body;
-
-      const result = await applyFatigueAdjustmentToSession(pool, id, { rpe_reportado, motivo_ajuste });
-      return res.status(200).json({ ok: true, data: result });
-    } catch (err) {
-      console.error('Error al ajustar sesión por fatiga:', err);
-      return res.status(500).json({ error: 'No se pudo aplicar el ajuste por fatiga' });
-    }
+  const plan = generatePeriodizationPlan({
+    modelo_periodizacion,
+    granularidad_generacion: range.granularity,
+    fecha_inicio: range.start_date,
+    fecha_fin: range.end_date,
+    modalidad,
+    dias_entrenamiento,
   });
 
-  router.post('/evaluaciones', async (req, res) => {
-    try {
-      const { practicante_id, macrociclo_id = null, fecha_evaluacion, flexiones = null, abdominales = null, patadas = null, observaciones = null } = req.body;
-      if (!practicante_id || !fecha_evaluacion) {
-        return res.status(400).json({ error: 'practicante_id y fecha_evaluacion son obligatorios' });
-      }
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
 
-      const [ins] = await pool.execute(
-        `INSERT INTO evaluaciones_fisicas
-          (practicante_id, macrociclo_id, fecha_evaluacion, flexiones, abdominales, patadas, observaciones)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [practicante_id, macrociclo_id, fecha_evaluacion, flexiones, abdominales, patadas, observaciones]
+    const [macroRes] = await conn.execute(
+      `INSERT INTO macrociclos
+        (creador_id, practicante_id, titulo, modelo_periodizacion, granularidad_generacion, fecha_inicio, fecha_fin, objetivo_principal)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        creador_id,
+        practicante_id,
+        titulo,
+        plan.modelo_periodizacion,
+        plan.granularidad_generacion,
+        plan.fecha_inicio,
+        plan.fecha_fin,
+        objetivo_principal,
+      ]
+    );
+
+    const macrocicloId = macroRes.insertId;
+
+    for (const meso of plan.mesocycles) {
+      const [mesoRes] = await conn.execute(
+        `INSERT INTO mesociclos
+          (macrociclo_id, numero_meso, nombre, periodo, enfoque_fuerza, enfoque_resistencia, enfoque_velocidad, enfoque_tecnico, semanas_duracion, volumen_objetivo, intensidad_objetivo)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          macrocicloId,
+          meso.numero_meso,
+          meso.nombre,
+          meso.periodo,
+          meso.enfoque_fuerza,
+          meso.enfoque_resistencia,
+          meso.enfoque_velocidad,
+          meso.enfoque_tecnico,
+          meso.semanas_duracion,
+          meso.volumen_objetivo,
+          meso.intensidad_objetivo,
+        ]
       );
 
-      return res.status(201).json({ ok: true, id: ins.insertId });
-    } catch (err) {
-      console.error('Error al guardar evaluación:', err);
-      return res.status(500).json({ error: 'No se pudo registrar la evaluación física' });
-    }
-  });
+      const mesocicloId = mesoRes.insertId;
 
-  router.get('/evaluaciones/practicante/:practicanteId', async (req, res) => {
-    try {
-      const { practicanteId } = req.params;
-      const [rows] = await pool.execute(
-        `SELECT * FROM evaluaciones_fisicas
-         WHERE practicante_id = ?
-         ORDER BY fecha_evaluacion DESC, id DESC`,
-        [practicanteId]
+      for (const micro of meso.microcycles) {
+        const [microRes] = await conn.execute(
+          `INSERT INTO microciclos
+            (mesociclo_id, numero_semana, tipo_microciclo, fecha_lunes, es_descarga, volumen_carga, intensidad_carga)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [
+            mesocicloId,
+            micro.numero_semana,
+            micro.tipo_microciclo,
+            micro.fecha_lunes,
+            micro.es_descarga ? 1 : 0,
+            micro.volumen_carga,
+            micro.intensidad_carga,
+          ]
+        );
+
+        const microcicloId = microRes.insertId;
+
+        for (const sesion of micro.sesiones) {
+          await conn.execute(
+            `INSERT INTO sesiones
+              (microciclo_id, practicante_id, fecha_sesion, dia_semana, tipo_plan, lugar_terreno, observaciones, estado)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              microcicloId,
+              practicante_id,
+              sesion.fecha_sesion,
+              sesion.dia_semana,
+              sesion.tipo_plan,
+              sesion.lugar_terreno,
+              sesion.enfoque,
+              sesion.estado,
+            ]
+          );
+        }
+      }
+    }
+
+    await conn.commit();
+    return res.status(201).json({ ok: true, macrociclo_id: macrocicloId, data: plan });
+  } catch (err) {
+    await conn.rollback();
+    console.error("Error al generar macrociclo:", err);
+    return res.status(500).json({ error: "No se pudo generar el plan de periodización" });
+  } finally {
+    conn.release();
+  }
+});
+
+router.post("/sesiones/:id/ajustar-fatiga", async (req, res) => {
+  const { id } = req.params;
+  const { rpe_reportado = 8, motivo_ajuste = "Fatiga reportada por practicante" } = req.body;
+
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    const [ejRows] = await conn.execute(
+      `SELECT se.id, se.ejercicio_id, se.orden, se.series, se.repeticiones_o_tiempo, se.porcentaje_intensidad, se.pausa_seg, se.notas_tecnicas, ec.nombre
+       FROM sesion_ejercicios se
+       JOIN ejercicios_catalogo ec ON ec.id = se.ejercicio_id
+       WHERE se.sesion_id = ?
+       ORDER BY se.orden ASC`,
+      [id]
+    );
+
+    const adjusted = adjustSessionForFatigue(ejRows, { rpe_reportado, motivo_ajuste });
+
+    await conn.execute(
+      `UPDATE sesiones
+       SET tipo_plan = ?, estado = ?, rpe_reportado = ?, motivo_ajuste = ?
+       WHERE id = ?`,
+      [adjusted.tipo_plan, adjusted.estado, adjusted.rpe_reportado, adjusted.motivo_ajuste, id]
+    );
+
+    for (const item of adjusted.ejercicios) {
+      await conn.execute(
+        `UPDATE sesion_ejercicios
+         SET series = ?, pausa_seg = ?, porcentaje_intensidad = ?, notas_tecnicas = ?, es_alternativa_ligera = 1
+         WHERE id = ?`,
+        [item.series, item.pausa_seg, item.porcentaje_intensidad, item.notas_tecnicas, item.id]
       );
-      return res.status(200).json({ ok: true, data: rows });
-    } catch (err) {
-      console.error('Error al consultar evaluaciones:', err);
-      return res.status(500).json({ error: 'No se pudieron obtener las evaluaciones' });
     }
-  });
 
-  return router;
-}
+    await conn.commit();
+    return res.status(200).json({ ok: true, session_id: Number(id), data: adjusted });
+  } catch (err) {
+    await conn.rollback();
+    console.error("Error al ajustar sesión por fatiga:", err);
+    return res.status(500).json({ error: "No se pudo aplicar el ajuste por fatiga" });
+  } finally {
+    conn.release();
+  }
+});
+
+module.exports = router;

@@ -1,3 +1,4 @@
+require("dotenv").config();
 const mysql = require("mysql2/promise");
 
 const useSSL = process.env.DB_SSL === "true";
@@ -11,7 +12,7 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  ...(useSSL ? { ssl: { minVersion: "TLSv1.2", rejectUnauthorized: true } } : {})
+  ...(useSSL ? { ssl: { minVersion: "TLSv1.2", rejectUnauthorized: true } } : {}),
 });
 
 module.exports = pool;
