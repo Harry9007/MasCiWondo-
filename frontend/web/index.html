@@ -6,7 +6,7 @@
   <title>MasCiWondo · Planificador de Ciclos TKD</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/estilos.css" />
+  <link rel="stylesheet" href="./css/estilos.css" />
 </head>
 <body>
   <header class="topbar">
@@ -15,7 +15,7 @@
       <p class="subtitulo">Planificador de macrociclos, mesociclos, microciclos y control de sobrecarga TKD</p>
     </div>
     <nav class="nav-links">
-      <a href="macrociclo.html">Generar Macrociclo</a>
+      <a href="./macrociclo.html">Generar Macrociclo</a>
       <a href="../mobile/index.html">Vista Móvil Practicante</a>
     </nav>
   </header>
@@ -27,9 +27,14 @@
         <div>
           <p id="estado-sesion-usuario" class="subtitulo">No has iniciado sesión.</p>
         </div>
-        <button type="button" id="btn-cerrar-sesion" class="btn-secundario" style="display:none;">
-          Cerrar sesión
-        </button>
+        <div class="acciones-sesion">
+          <a href="./macrociclo.html" id="btn-ir-macrociclo" class="btn-secundario" style="display:none;">
+            Ir a Macrociclos
+          </a>
+          <button type="button" id="btn-cerrar-sesion" class="btn-secundario" style="display:none;">
+            Cerrar sesión
+          </button>
+        </div>
       </div>
 
       <div id="formularios-auth" class="auth-centrado-wrapper">
@@ -51,6 +56,7 @@
             type="email"
             id="loginEmail"
             placeholder="Correo electrónico"
+            autocomplete="email"
             required
           />
 
@@ -58,6 +64,7 @@
             type="password"
             id="loginPassword"
             placeholder="Contraseña"
+            autocomplete="current-password"
             required
           />
 
@@ -84,11 +91,11 @@
           </label>
           <label>
             Correo electrónico
-            <input type="email" id="regEmail" placeholder="valentina@correo.com" required />
+            <input type="email" id="regEmail" placeholder="valentina@correo.com" autocomplete="email" required />
           </label>
           <label>
             Contraseña (mín. 6 caracteres)
-            <input type="password" id="regPassword" minlength="6" required />
+            <input type="password" id="regPassword" minlength="6" autocomplete="new-password" required />
           </label>
           <label>
             Rol
@@ -127,7 +134,7 @@
     </section>
 
     <!-- Paso 1: Generar Macrociclo -->
-    <section class="panel" id="panel-macrociclo">
+    <section class="panel" id="panel-macrociclo" style="display:none;">
       <div class="seccion-encabezado">
         <div>
           <span class="badge-paso">Paso 1 · Planificación</span>
@@ -153,7 +160,7 @@
 
         <label>
           Fecha de Fin
-          <input type="date" id="fechaFin" required />
+          <input type="date" id="fechaFin" />
         </label>
 
         <label>
@@ -201,7 +208,7 @@
     </section>
 
     <!-- Paso 2: Seguimiento -->
-    <section class="panel" id="panel-seguimiento">
+    <section class="panel" id="panel-seguimiento" style="display:none;">
       <div class="seccion-encabezado">
         <div>
           <span class="badge-paso">Paso 2 · Control y Sobrecarga</span>
@@ -220,9 +227,9 @@
     </section>
   </main>
 
-  <script src="js/api.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/macrociclo.js"></script>
-  <script src="js/seguimiento.js"></script>
+  <script src="./js/api.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/macrociclo.js"></script>
+  <script src="./js/seguimiento.js"></script>
 </body>
-</html>
+</html>>

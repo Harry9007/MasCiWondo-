@@ -1,75 +1,92 @@
 const express = require("express");
-const pool = require("../db");
+const pool = require("../config/db");
 const {
-  resolveDateRange,
   generatePeriodizationPlan,
   adjustSessionForFatigue,
-} = require("../../shared/periodizationEngine");
+} = require("../../../shared/periodizationEngine");
 
 const router = express.Router();
 
-router.post("/macrociclos/generar", async (req, res) => {
-  const {
-    creador_id,
-    practicante_id = null,
-    titulo,
-    objetivo_principal = "Desarrollo integral y rendimiento",
-    modelo_periodizacion = "atr",
-    granularidad_generacion = "mes",
-    referenceDate,
-    fecha_inicio,
-    fecha_fin,
-    modalidad = "mixto",
-    dias_entrenamiento = ["lunes", "miercoles", "viernes"],
-  } = req.body;
-
-  if (!creador_id || !titulo) {
-    return res.status(400).json({ error: "creador_id y titulo son obligatorios" });
-  }
-
-  const range = resolveDateRange({
-    granularity: granularidad_generacion,
-    referenceDate,
-    startDate: fecha_inicio,
-    endDate: fecha_fin,
-  });
-
-  const plan = generatePeriodizationPlan({
-    modelo_periodizacion,
-    granularidad_generacion: range.granularity,
-    fecha_inicio: range.start_date,
-    fecha_fin: range.end_date,
-    modalidad,
-    dias_entrenamiento,
-  });
-
-  const conn = await pool.getConnection();
+// POST /api/macrociclos/generar
+router.post("/macrociclos/generar", async (req, res, next) => {
+  const connection = await pool.getConnection();
   try {
-    await conn.beginTransaction();
+    const {
+      creador_id,
+      practicante_id = null,
+      titulo,
+      modelo_periodizacion = "atr",
+      granularidad_generacion = "mes",
+      modalidad = "mixto",
+      fecha_inicio,
+      fecha_fin,
+      objetivo_principal = "Desarrollo integral de Taekwondo",
+      dias_entrenamiento = ["lunes", "miercoles", "viernes"],
+    } = req.body;
 
-    const [macroRes] = await conn.execute(
-      `INSERT INTO macrociclos
-        (creador_id, practicante_id, titulo, modelo_periodizacion, granularidad_generacion, fecha_inicio, fecha_fin, objetivo_principal)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
+    if (!creador_id) {
+      return res.status(400).json({ error: "El campo creador_id es obligatorio" });
+    }
+
+    const plan = generatePeriodizationPlan({
+      titulo,
+      modelo_periodizacion,
+      granularidad_generacion,
+      modalidad,
+      fecha_inicio,
+      fecha_fin,
+      objetivo_principal,
+      dias_entrenamiento,
+      practicante_id: practicante_id ? Number(practicante_id) : null,
+    });
+
+    await connection.beginTransaction();
+
+    const [macroResult] = await connection.query(
+      `INSERT INTO macrociclos (
         creador_id,
         practicante_id,
         titulo,
-        plan.modelo_periodizacion,
-        plan.granularidad_generacion,
-        plan.fecha_inicio,
-        plan.fecha_fin,
-        objetivo_principal,
+        modelo_periodizacion,
+        granularidad_generacion,
+        modalidad,
+        fecha_inicio,
+        fecha_fin,
+        objetivo_principal
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        Number(creador_id),
+        practicante_id ? Number(practicante_id) : null,
+        plan.macrociclo.titulo,
+        plan.macrociclo.modelo_periodizacion,
+        plan.macrociclo.granularidad_generacion,
+        plan.macrociclo.modalidad,
+        plan.macrociclo.fecha_inicio,
+        plan.macrociclo.fecha_fin,
+        plan.macrociclo.objetivo_principal,
       ]
     );
 
-    const macrocicloId = macroRes.insertId;
+    const macrocicloId = macroResult.insertId;
+    let totalMesociclos = 0;
+    let totalMicrociclos = 0;
+    let totalSesiones = 0;
 
-    for (const meso of plan.mesocycles) {
-      const [mesoRes] = await conn.execute(
-        `INSERT INTO mesociclos
-          (macrociclo_id, numero_meso, nombre, periodo, enfoque_fuerza, enfoque_resistencia, enfoque_velocidad, enfoque_tecnico, semanas_duracion, volumen_objetivo, intensidad_objetivo)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    for (const meso of plan.mesociclos) {
+      const [mesoResult] = await connection.query(
+        `INSERT INTO mesociclos (
+          macrociclo_id,
+          numero_meso,
+          nombre,
+          periodo,
+          enfoque_fuerza,
+          enfoque_resistencia,
+          enfoque_velocidad,
+          enfoque_tecnico,
+          semanas_duracion,
+          volumen_objetivo,
+          intensidad_objetivo
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           macrocicloId,
           meso.numero_meso,
@@ -85,100 +102,224 @@ router.post("/macrociclos/generar", async (req, res) => {
         ]
       );
 
-      const mesocicloId = mesoRes.insertId;
+      const mesocicloId = mesoResult.insertId;
+      totalMesociclos++;
 
-      for (const micro of meso.microcycles) {
-        const [microRes] = await conn.execute(
-          `INSERT INTO microciclos
-            (mesociclo_id, numero_semana, tipo_microciclo, fecha_lunes, es_descarga, volumen_carga, intensidad_carga)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      for (const micro of meso.microciclos) {
+        const [microResult] = await connection.query(
+          `INSERT INTO microciclos (
+            mesociclo_id,
+            numero_semana,
+            fecha_lunes,
+            tipo_microciclo,
+            es_descarga,
+            volumen_carga,
+            intensidad_carga,
+            observaciones
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             mesocicloId,
             micro.numero_semana,
-            micro.tipo_microciclo,
             micro.fecha_lunes,
+            micro.tipo_microciclo,
             micro.es_descarga ? 1 : 0,
             micro.volumen_carga,
             micro.intensidad_carga,
+            micro.observaciones,
           ]
         );
 
-        const microcicloId = microRes.insertId;
+        const microcicloId = microResult.insertId;
+        totalMicrociclos++;
 
         for (const sesion of micro.sesiones) {
-          await conn.execute(
-            `INSERT INTO sesiones
-              (microciclo_id, practicante_id, fecha_sesion, dia_semana, tipo_plan, lugar_terreno, observaciones, estado)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          await connection.query(
+            `INSERT INTO sesiones (
+              microciclo_id,
+              practicante_id,
+              fecha_sesion,
+              dia_semana,
+              tipo_plan,
+              estado,
+              sesion_origen_id,
+              lugar_terreno,
+              rpe_reportado,
+              motivo_ajuste,
+              observaciones
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               microcicloId,
-              practicante_id,
+              sesion.practicante_id,
               sesion.fecha_sesion,
               sesion.dia_semana,
               sesion.tipo_plan,
-              sesion.lugar_terreno,
-              sesion.enfoque,
               sesion.estado,
+              sesion.sesion_origen_id,
+              sesion.lugar_terreno,
+              sesion.rpe_reportado,
+              sesion.motivo_ajuste,
+              sesion.observaciones,
             ]
           );
+          totalSesiones++;
         }
       }
     }
 
-    await conn.commit();
-    return res.status(201).json({ ok: true, macrociclo_id: macrocicloId, data: plan });
-  } catch (err) {
-    await conn.rollback();
-    console.error("Error al generar macrociclo:", err);
-    return res.status(500).json({ error: "No se pudo generar el plan de periodización" });
+    await connection.commit();
+
+    res.status(201).json({
+      mensaje: "Macrociclo generado correctamente",
+      macrociclo_id: macrocicloId,
+      resumen: {
+        modelo_periodizacion: plan.macrociclo.modelo_periodizacion,
+        granularidad_generacion: plan.macrociclo.granularidad_generacion,
+        fecha_inicio: plan.macrociclo.fecha_inicio,
+        fecha_fin: plan.macrociclo.fecha_fin,
+        mesociclos: totalMesociclos,
+        microciclos: totalMicrociclos,
+        sesiones: totalSesiones,
+      },
+    });
+  } catch (error) {
+    await connection.rollback();
+    next(error);
   } finally {
-    conn.release();
+    connection.release();
   }
 });
 
-router.post("/sesiones/:id/ajustar-fatiga", async (req, res) => {
-  const { id } = req.params;
-  const { rpe_reportado = 8, motivo_ajuste = "Fatiga reportada por practicante" } = req.body;
-
-  const conn = await pool.getConnection();
+// GET /api/macrociclos?usuarioId=1
+router.get("/macrociclos", async (req, res, next) => {
   try {
-    await conn.beginTransaction();
+    const usuarioId = req.query.usuarioId ? Number(req.query.usuarioId) : null;
+    if (usuarioId) {
+      const [rows] = await pool.query(
+        `SELECT * FROM macrociclos
+         WHERE creador_id = ? OR practicante_id = ?
+         ORDER BY creado_en DESC`,
+        [usuarioId, usuarioId]
+      );
+      return res.json({ macrociclos: rows });
+    }
 
-    const [ejRows] = await conn.execute(
-      `SELECT se.id, se.ejercicio_id, se.orden, se.series, se.repeticiones_o_tiempo, se.porcentaje_intensidad, se.pausa_seg, se.notas_tecnicas, ec.nombre
-       FROM sesion_ejercicios se
-       JOIN ejercicios_catalogo ec ON ec.id = se.ejercicio_id
-       WHERE se.sesion_id = ?
-       ORDER BY se.orden ASC`,
-      [id]
+    const [rows] = await pool.query(
+      "SELECT * FROM macrociclos ORDER BY creado_en DESC LIMIT 50"
+    );
+    res.json({ macrociclos: rows });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/macrociclos/:id/detalle
+router.get("/macrociclos/:id/detalle", async (req, res, next) => {
+  try {
+    const macroId = Number(req.params.id);
+    const [macros] = await pool.query(
+      "SELECT * FROM macrociclos WHERE id = ? LIMIT 1",
+      [macroId]
     );
 
-    const adjusted = adjustSessionForFatigue(ejRows, { rpe_reportado, motivo_ajuste });
+    if (macros.length === 0) {
+      return res.status(404).json({ error: "Macrociclo no encontrado" });
+    }
 
-    await conn.execute(
+    const [mesos] = await pool.query(
+      "SELECT * FROM mesociclos WHERE macrociclo_id = ? ORDER BY numero_meso ASC",
+      [macroId]
+    );
+
+    const mesoIds = mesos.map((m) => m.id);
+    let micros = [];
+    if (mesoIds.length > 0) {
+      const [rows] = await pool.query(
+        `SELECT * FROM microciclos
+         WHERE mesociclo_id IN (${mesoIds.map(() => "?").join(",")})
+         ORDER BY numero_semana ASC`,
+        mesoIds
+      );
+      micros = rows;
+    }
+
+    const microIds = micros.map((mi) => mi.id);
+    let sesiones = [];
+    if (microIds.length > 0) {
+      const [rows] = await pool.query(
+        `SELECT * FROM sesiones
+         WHERE microciclo_id IN (${microIds.map(() => "?").join(",")})
+         ORDER BY fecha_sesion ASC, id ASC`,
+        microIds
+      );
+      sesiones = rows;
+    }
+
+    res.json({
+      macrociclo: macros[0],
+      mesociclos: mesos,
+      microciclos: micros,
+      sesiones,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/sesiones/:id/ajustar-fatiga
+router.post("/sesiones/:id/ajustar-fatiga", async (req, res, next) => {
+  try {
+    const sesionId = Number(req.params.id);
+    const { rpe_reportado, motivo_ajuste } = req.body;
+
+    const [existing] = await pool.query(
+      "SELECT id FROM sesiones WHERE id = ? LIMIT 1",
+      [sesionId]
+    );
+    if (existing.length === 0) {
+      return res.status(404).json({ error: "Sesión no encontrada" });
+    }
+
+    const ajuste = adjustSessionForFatigue({ rpe_reportado, motivo_ajuste });
+
+    await pool.query(
       `UPDATE sesiones
-       SET tipo_plan = ?, estado = ?, rpe_reportado = ?, motivo_ajuste = ?
+       SET rpe_reportado = ?,
+           tipo_plan = ?,
+           estado = ?,
+           motivo_ajuste = ?
        WHERE id = ?`,
-      [adjusted.tipo_plan, adjusted.estado, adjusted.rpe_reportado, adjusted.motivo_ajuste, id]
+      [
+        ajuste.rpe_reportado,
+        ajuste.tipo_plan,
+        ajuste.estado,
+        ajuste.motivo_ajuste,
+        sesionId,
+      ]
     );
 
-    for (const item of adjusted.ejercicios) {
-      await conn.execute(
+    if (ajuste.es_alternativa_ligera) {
+      await pool.query(
         `UPDATE sesion_ejercicios
-         SET series = ?, pausa_seg = ?, porcentaje_intensidad = ?, notas_tecnicas = ?, es_alternativa_ligera = 1
-         WHERE id = ?`,
-        [item.series, item.pausa_seg, item.porcentaje_intensidad, item.notas_tecnicas, item.id]
+         SET series = GREATEST(1, ROUND(series * ?)),
+             pausa_seg = ROUND(pausa_seg * ?),
+             es_alternativa_ligera = 1
+         WHERE sesion_id = ?`,
+        [ajuste.factor_volumen, ajuste.factor_pausa, sesionId]
       );
     }
 
-    await conn.commit();
-    return res.status(200).json({ ok: true, session_id: Number(id), data: adjusted });
-  } catch (err) {
-    await conn.rollback();
-    console.error("Error al ajustar sesión por fatiga:", err);
-    return res.status(500).json({ error: "No se pudo aplicar el ajuste por fatiga" });
-  } finally {
-    conn.release();
+    const [updated] = await pool.query(
+      "SELECT * FROM sesiones WHERE id = ? LIMIT 1",
+      [sesionId]
+    );
+
+    res.json({
+      mensaje: "Sesión actualizada según reporte de fatiga",
+      ajuste,
+      sesion: updated[0],
+    });
+  } catch (error) {
+    next(error);
   }
 });
 

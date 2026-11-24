@@ -6,7 +6,7 @@
   <title>MasCiWondo · Generar Macrociclo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/estilos.css" />
+  <link rel="stylesheet" href="./css/estilos.css" />
 </head>
 <body>
   <header class="topbar">
@@ -15,7 +15,7 @@
       <p class="subtitulo">Planificador de macrociclos, mesociclos, microciclos y control de sobrecarga TKD</p>
     </div>
     <nav class="nav-links">
-      <a href="index.html">Inicio / Cuenta</a>
+      <a href="./index.html">Inicio / Cuenta</a>
       <a href="../mobile/index.html">Vista Móvil Practicante</a>
     </nav>
   </header>
@@ -30,7 +30,7 @@
           <div id="mensaje-auth" class="resultado-box" style="margin-top:0.5rem;"></div>
         </div>
         <div class="acciones-sesion">
-          <a href="index.html" id="btn-ir-login" class="btn-secundario">Iniciar Sesión / Registro</a>
+          <a href="./index.html" id="btn-ir-login" class="btn-secundario">Iniciar Sesión / Registro</a>
           <button type="button" id="btn-cerrar-sesion" class="btn-secundario" style="display:none;">
             Cerrar sesión
           </button>
@@ -49,7 +49,7 @@
         Para crear macrociclos, mesociclos y consultar sesiones necesitas tener una sesión activa.
       </p>
       <div style="margin-top:0.85rem;">
-        <a href="index.html" class="btn-primario">Ir a Iniciar Sesión</a>
+        <a href="./index.html" class="btn-primario">Ir a Iniciar Sesión</a>
       </div>
     </section>
 
@@ -70,8 +70,31 @@
         </label>
 
         <label>
+          ID Practicante (opcional)
+          <input type="number" id="practicanteId" min="1" placeholder="Ej. 2" />
+        </label>
+
+        <label>
           Título del Macrociclo
           <input type="text" id="titulo" placeholder="Ej. Preparación Torneo Nacional 2027" required />
+        </label>
+
+        <label>
+          Modelo de Periodización
+          <select id="modeloPeriodizacion">
+            <option value="atr" selected>ATR (Acumulación, Transformación, Realización)</option>
+            <option value="preparatorio_competitivo">Preparatorio - Competitivo</option>
+          </select>
+        </label>
+
+        <label>
+          Granularidad de Generación
+          <select id="granularidadGeneracion">
+            <option value="mes" selected>Mes</option>
+            <option value="semana">Semana</option>
+            <option value="dia">Día</option>
+            <option value="anio">Año</option>
+          </select>
         </label>
 
         <label>
@@ -80,8 +103,8 @@
         </label>
 
         <label>
-          Fecha de Fin
-          <input type="date" id="fechaFin" required />
+          Fecha de Fin (opcional según granularidad)
+          <input type="date" id="fechaFin" />
         </label>
 
         <label>
@@ -137,6 +160,8 @@
         </div>
       </div>
 
+      <div id="resumen-carga-seguimiento" class="resultado-box" style="margin-bottom:0.75rem;"></div>
+
       <div class="barra-filtro">
         <label>
           Filtrar por Microciclo ID (opcional):
@@ -148,9 +173,9 @@
     </section>
   </main>
 
-  <script src="js/api.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/macrociclo.js"></script>
-  <script src="js/seguimiento.js"></script>
+  <script src="./js/api.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/macrociclo.js"></script>
+  <script src="./js/seguimiento.js"></script>
 </body>
 </html>

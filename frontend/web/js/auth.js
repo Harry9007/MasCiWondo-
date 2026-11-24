@@ -1,11 +1,18 @@
+// web/js/auth.js
 const STORAGE_KEY_USUARIO = "masciwondo_usuario";
 
 function esRutaMacrociclo() {
   const rutaActual = window.location.pathname || "";
-  return rutaActual.endsWith("/macrociclo.html") || rutaActual.endsWith("macrociclo.html");
+  return (
+    rutaActual.endsWith("/macrociclo.html") ||
+    rutaActual.endsWith("macrociclo.html")
+  );
 }
 
 function obtenerUsuarioActivo() {
+  if (typeof obtenerSesionUsuario === "function") {
+    return obtenerSesionUsuario();
+  }
   try {
     const raw = localStorage.getItem(STORAGE_KEY_USUARIO);
     return raw ? JSON.parse(raw) : null;
@@ -15,26 +22,35 @@ function obtenerUsuarioActivo() {
 }
 
 function guardarUsuarioActivo(usuario) {
-  localStorage.setItem(STORAGE_KEY_USUARIO, JSON.stringify(usuario));
+  if (!usuario) return;
+  if (typeof guardarSesionUsuario === "function") {
+    guardarSesionUsuario(usuario);
+  } else {
+    localStorage.setItem(STORAGE_KEY_USUARIO, JSON.stringify(usuario));
+  }
   aplicarContextoUsuario(usuario);
 }
 
 function limpiarUsuarioActivo() {
-  localStorage.removeItem(STORAGE_KEY_USUARIO);
+  if (typeof cerrarSesionUsuario === "function") {
+    cerrarSesionUsuario();
+  } else {
+    localStorage.removeItem(STORAGE_KEY_USUARIO);
+  }
   aplicarContextoUsuario(null);
 }
 
 function irAMacrocicloSiCorresponde() {
   if (!esRutaMacrociclo()) {
     setTimeout(() => {
-      window.location.href = "macrociclo.html";
+      window.location.href = "./macrociclo.html";
     }, 500);
   }
 }
 
 function protegerRutaMacrociclo(usuario = obtenerUsuarioActivo()) {
   if (esRutaMacrociclo() && !usuario) {
-    window.location.replace("index.html");
+    window.location.replace("./index.html");
   }
 }
 
@@ -49,17 +65,20 @@ function aplicarContextoUsuario(usuario) {
   }
 
   if (usuario) {
+    const modalidadTexto = usuario.modalidad || "mixto";
     if (estadoEl) {
-      estadoEl.textContent = `Sesión activa: ${usuario.nombre} (${usuario.rol.toUpperCase()} · ${usuario.modalidad} · ID #${usuario.id})`;
+      estadoEl.textContent = `Sesión activa: ${usuario.nombre} (${String(
+        usuario.rol || ""
+      ).toUpperCase()} · ${modalidadTexto} · ID #${usuario.id})`;
     }
     if (btnLogout) btnLogout.style.display = "inline-block";
     if (formsAuth) formsAuth.style.display = "none";
 
-    // Sincronizar campos del panel web si existen
     const inputCreador = document.getElementById("creadorId");
     if (inputCreador && usuario.rol === "entrenador") {
       inputCreador.value = usuario.id;
     }
+
     const selectModalidad = document.getElementById("modalidad");
     if (selectModalidad && usuario.modalidad) {
       selectModalidad.value = usuario.modalidad;
@@ -108,7 +127,9 @@ function actualizarBloqueoPorSesion(usuario) {
     if (btnGenerar) btnGenerar.disabled = false;
     if (
       resultadoMacro &&
-      resultadoMacro.textContent.includes("Debes iniciar sesión para generar macrociclos")
+      resultadoMacro.textContent.includes(
+        "Debes iniciar sesión para generar macrociclos"
+      )
     ) {
       resultadoMacro.textContent = "";
     }
@@ -122,11 +143,14 @@ async function cargarListaEntrenadores() {
   try {
     const data = await peticionAPI("/auth/entrenadores");
     const opciones = (data.entrenadores || [])
-      .map((ent) => `<option value="${ent.id}">${ent.nombre} (${ent.modalidad})</option>`)
+      .map(
+        (ent) =>
+          `<option value="${ent.id}">${ent.nombre} (${ent.modalidad})</option>`
+      )
       .join("");
     selectEntrenador.innerHTML = `<option value="">Sin asignar</option>${opciones}`;
   } catch {
-    // Si falla la carga de entrenadores, mantiene la opción por defecto
+    // Mantiene la opción por defecto si aún no hay entrenadores o falla la petición
   }
 }
 
@@ -142,11 +166,13 @@ if (formLogin) {
         method: "POST",
         body: JSON.stringify({
           email: document.getElementById("loginEmail").value.trim(),
-          password: document.getElementById("loginPassword").value
-        })
+          password: document.getElementById("loginPassword").value,
+        }),
       });
       guardarUsuarioActivo(data.usuario);
-      if (msg) msg.textContent = `Bienvenido/a, ${data.usuario.nombre}. Redirigiendo a macrociclos...`;
+      if (msg) {
+        msg.textContent = `Bienvenido/a, ${data.usuario.nombre}. Redirigiendo a macrociclos...`;
+      }
       formLogin.reset();
       irAMacrocicloSiCorresponde();
     } catch (err) {
@@ -162,7 +188,8 @@ if (formRegistro) {
     const msg = document.getElementById("mensaje-auth");
     if (msg) msg.textContent = "Registrando usuario...";
 
-    const entrenadorVal = document.getElementById("regEntrenadorId")?.value || null;
+    const entrenadorVal =
+      document.getElementById("regEntrenadorId")?.value || null;
 
     try {
       const data = await peticionAPI("/auth/registro", {
@@ -174,14 +201,16 @@ if (formRegistro) {
           rol: document.getElementById("regRol").value,
           modalidad: document.getElementById("regModalidad").value,
           nivel: document.getElementById("regNivel").value,
-          entrenadorId: entrenadorVal ? Number(entrenadorVal) : null
-        })
+          entrenadorId: entrenadorVal ? Number(entrenadorVal) : null,
+        }),
       });
       guardarUsuarioActivo(data.usuario);
       if (data.usuario?.rol === "entrenador") {
         await cargarListaEntrenadores();
       }
-      if (msg) msg.textContent = `Cuenta creada para ${data.usuario.nombre}. Redirigiendo a macrociclos...`;
+      if (msg) {
+        msg.textContent = `Cuenta creada para ${data.usuario.nombre}. Redirigiendo a macrociclos...`;
+      }
       formRegistro.reset();
       irAMacrocicloSiCorresponde();
     } catch (err) {
@@ -207,7 +236,9 @@ function exigirSesionActiva(
   if (!usuario) {
     const msgAuth = document.getElementById("mensaje-auth");
     if (msgAuth) msgAuth.textContent = mensajeCustom;
-    document.getElementById("seccion-cuenta")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document
+      .getElementById("seccion-cuenta")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
     return null;
   }
   return usuario;
@@ -217,7 +248,9 @@ document.querySelectorAll(".auth-tab").forEach((tab) => {
   tab.addEventListener("click", () => {
     const targetId = tab.getAttribute("data-target");
 
-    document.querySelectorAll(".auth-tab").forEach((t) => t.classList.remove("activa"));
+    document
+      .querySelectorAll(".auth-tab")
+      .forEach((t) => t.classList.remove("activa"));
     tab.classList.add("activa");
 
     document.querySelectorAll(".auth-form-panel").forEach((panel) => {
@@ -232,7 +265,6 @@ document.querySelectorAll("[data-ir-registro='true']").forEach((btn) => {
   });
 });
 
-// Inicialización al cargar la página
 const usuarioInicial = obtenerUsuarioActivo();
 protegerRutaMacrociclo(usuarioInicial);
 aplicarContextoUsuario(usuarioInicial);
