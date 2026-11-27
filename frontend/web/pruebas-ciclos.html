@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MasCiWondo · Laboratorio de Pruebas de Ciclos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/estilos.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>🥋 MasCiWondo · Pruebas de Ciclos</h1>
+      <p class="subtitulo">Generación de escenarios calibrados y auditoría de precisión de mesociclos, microciclos y RPE</p>
+    </div>
+    <nav class="nav-links">
+      <a href="./macrociclo.html">Generar Macrociclo</a>
+      <a href="./seguimiento.html">Seguimiento</a>
+      <a href="./index.html">Cuenta</a>
+    </nav>
+  </header>
+
+  <main class="contenedor">
+    <section class="panel" id="seccion-cuenta">
+      <div class="cuenta-header">
+        <div>
+          <span class="badge-paso">Contexto de Pruebas</span>
+          <p id="estado-sesion-usuario" class="subtitulo">No has iniciado sesión.</p>
+          <div id="mensaje-auth" class="resultado-box" style="display:none;"></div>
+        </div>
+        <div class="acciones-sesion">
+          <a href="./index.html" id="btn-ir-login" class="btn-secundario">Iniciar Sesión</a>
+          <button type="button" id="btn-cerrar-sesion" class="btn-secundario" style="display:none;">
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
+      <div id="formularios-auth" style="display:none;"></div>
+    </section>
+
+    <section class="panel">
+      <div class="seccion-encabezado">
+        <div>
+          <span class="badge-paso">Escenarios Calibrados</span>
+          <h2>Presets de Precisión para Pruebas</h2>
+          <p class="ayuda-corta">
+            Selecciona un escenario para rellenar parámetros exactos (fechas alineadas a lunes, días de entrenamiento, modelo y granularidad) o ejecutarlo directo contra la API.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid-form" id="presets-pruebas">
+        <article class="subcard">
+          <h3>1. ATR Kyorugi (4 semanas · Mes)</h3>
+          <p class="ayuda-corta">
+            Modelo ATR, granularidad mensual, modalidad Kyorugi, días lun/mié/vie con enfoque de potencia y táctica.
+          </p>
+          <div class="acciones">
+            <button type="button" class="btn-secundario btn-preset" data-preset="atr_kyorugi">
+              Cargar Preset
+            </button>
+          </div>
+        </article>
+
+        <article class="subcard">
+          <h3>2. Preparatorio-Competitivo Poomsae (2 semanas · Semana)</h3>
+          <p class="ayuda-corta">
+            Modelo preparatorio-competitivo, granularidad semanal, modalidad Poomsae, 4 días de control técnico.
+          </p>
+          <div class="acciones">
+            <button type="button" class="btn-secundario btn-preset" data-preset="prep_poomsae">
+              Cargar Preset
+            </button>
+          </div>
+        </article>
+
+        <article class="subcard">
+          <h3>3. Microciclo de Descarga / Tapering (1 semana · Día)</h3>
+          <p class="ayuda-corta">
+            Granularidad diaria sobre lunes-viernes con volumen reducido para verificar descarga y recuperación.
+          </p>
+          <div class="acciones">
+            <button type="button" class="btn-secundario btn-preset" data-preset="descarga_dia">
+              Cargar Preset
+            </button>
+          </div>
+        </article>
+      </div>
+
+      <form id="form-prueba-ciclo" class="grid-form" style="margin-top:1.25rem;">
+        <label>
+          Título del ciclo de prueba
+          <input type="text" id="pruebaTitulo" required />
+        </label>
+
+        <label>
+          ID Practicante (opcional)
+          <input type="number" id="pruebaPracticanteId" min="1" placeholder="Ej. 2" />
+        </label>
+
+        <label>
+          Modelo de periodización
+          <select id="pruebaModelo">
+            <option value="atr">ATR</option>
+            <option value="preparatorio_competitivo">Preparatorio - Competitivo</option>
+          </select>
+        </label>
+
+        <label>
+          Granularidad de generación
+          <select id="pruebaGranularidad">
+            <option value="mes">Mes</option>
+            <option value="semana">Semana</option>
+            <option value="dia">Día</option>
+            <option value="anio">Año</option>
+          </select>
+        </label>
+
+        <label>
+          Modalidad
+          <select id="pruebaModalidad">
+            <option value="kyorugi">Kyorugi</option>
+            <option value="poomsae">Poomsae</option>
+            <option value="mixto">Mixto</option>
+          </select>
+        </label>
+
+        <label>
+          Fecha inicio (ajustada a lunes)
+          <input type="date" id="pruebaFechaInicio" required />
+        </label>
+
+        <label>
+          Fecha fin (opcional)
+          <input type="date" id="pruebaFechaFin" />
+        </label>
+
+        <label>
+          Objetivo principal
+          <input type="text" id="pruebaObjetivo" required />
+        </label>
+
+        <fieldset class="span-2 subcard" id="pruebaDiasGrupo">
+          <legend>Días de entrenamiento</legend>
+          <div class="grid-form">
+            <label><input type="checkbox" name="pruebaDias" value="lunes" checked /> Lunes</label>
+            <label><input type="checkbox" name="pruebaDias" value="martes" /> Martes</label>
+            <label><input type="checkbox" name="pruebaDias" value="miercoles" checked /> Miércoles</label>
+            <label><input type="checkbox" name="pruebaDias" value="jueves" /> Jueves</label>
+            <label><input type="checkbox" name="pruebaDias" value="viernes" checked /> Viernes</label>
+            <label><input type="checkbox" name="pruebaDias" value="sabado" /> Sábado</label>
+            <label><input type="checkbox" name="pruebaDias" value="domingo" /> Domingo</label>
+          </div>
+        </fieldset>
+
+        <div class="span-2 acciones" style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+          <button type="submit" class="btn-primario">Ejecutar Ciclo de Prueba</button>
+          <button type="button" id="btn-probar-rpe-alta" class="btn-secundario">
+            Simular RPE 9 en 1ª Sesión
+          </button>
+        </div>
+      </form>
+
+      <div id="auditoria-prueba" class="resultado-box" style="margin-top:1rem;"></div>
+      <div id="resultado-prueba-detalle" class="jerarquia-ciclo" style="margin-top:1rem;"></div>
+    </section>
+  </main>
+
+  <script src="./js/api.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/macrociclo.js"></script>
+  <script src="./js/pruebasCiclos.js"></script>
+</body>
+</html>

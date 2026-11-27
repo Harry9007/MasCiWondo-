@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MasCiWondo · Seguimiento de Sesiones y Fatiga</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/estilos.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>🥋 MasCiWondo</h1>
+      <p class="subtitulo">Control de sesiones, alternativas ligeras y monitoreo de fatiga (RPE)</p>
+    </div>
+    <nav class="nav-links">
+      <a href="./macrociclo.html">Macrociclos</a>
+      <a href="./pruebas-ciclos.html">Pruebas de Ciclos</a>
+      <a href="./index.html">Cuenta</a>
+      <a href="../mobile/index.html">Vista Móvil</a>
+    </nav>
+  </header>
+
+  <main class="contenedor">
+    <section class="panel" id="seccion-cuenta">
+      <div class="cuenta-header">
+        <div>
+          <span class="badge-paso">Sesión</span>
+          <p id="estado-sesion-usuario" class="subtitulo">No has iniciado sesión.</p>
+          <div id="mensaje-auth" class="resultado-box" style="display:none;"></div>
+        </div>
+        <div class="acciones-sesion">
+          <a href="./index.html" id="btn-ir-login" class="btn-secundario">Iniciar Sesión</a>
+          <button type="button" id="btn-cerrar-sesion" class="btn-secundario" style="display:none;">
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
+      <div id="formularios-auth" style="display:none;"></div>
+    </section>
+
+    <section class="panel" id="panel-seguimiento">
+      <div class="seccion-encabezado">
+        <div>
+          <span class="badge-paso">Monitoreo</span>
+          <h2>Seguimiento de Sesiones y Sobrecarga</h2>
+          <p class="ayuda-corta">
+            Consulta sesiones por microciclo, detecta alertas de RPE ≥ 8 y abre cualquier sesión para ajustar carga.
+          </p>
+        </div>
+      </div>
+
+      <div id="resumen-carga-seguimiento" class="resultado-box" style="margin-bottom:0.85rem;"></div>
+
+      <div class="barra-filtro">
+        <label>
+          Microciclo ID (opcional):
+          <input type="number" id="filtroMicrocicloId" min="1" placeholder="Ej. 1" />
+        </label>
+        <button type="button" id="btn-cargar-sesiones" class="btn-primario">Cargar Sesiones</button>
+      </div>
+
+      <div id="lista-sesiones" class="lista-sesiones"></div>
+    </section>
+  </main>
+
+  <script src="./js/api.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/seguimiento.js"></script>
+</body>
+</html>

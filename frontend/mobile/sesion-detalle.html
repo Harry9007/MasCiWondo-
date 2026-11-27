@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MasCiWondo Móvil · Detalle de Sesión</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../web/css/estilos.css" />
+  <style>
+    .mobile-main {
+      max-width: 540px;
+      margin: 1.25rem auto;
+      padding: 0 1rem;
+      display: grid;
+      gap: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>🥋 MasCiWondo</h1>
+      <p class="subtitulo">Autoregulación de fatiga (RPE) y ejercicios</p>
+    </div>
+    <nav class="nav-links">
+      <a href="./sesiones.html">Mis Sesiones</a>
+      <a href="./index.html">Cuenta</a>
+    </nav>
+  </header>
+
+  <main class="mobile-main">
+    <section id="panel-sesion" class="sesion-card panel" aria-live="polite">
+      <header class="sesion-header">
+        <div>
+          <span id="sesion-badge-plan" class="badge">base_entrenador</span>
+          <span id="sesion-badge-estado" class="badge">planificada</span>
+          <h2 id="sesion-titulo">Sesión de entrenamiento</h2>
+          <p id="sesion-meta" class="sesion-meta"></p>
+        </div>
+
+        <div class="fatiga-resumen">
+          <strong>RPE actual:</strong>
+          <span id="sesion-rpe-valor">--</span>
+          <p id="sesion-motivo-ajuste" class="motivo-ajuste"></p>
+        </div>
+      </header>
+
+      <form id="form-fatiga-sesion" class="fatiga-form">
+        <label for="input-rpe">Esfuerzo percibido (RPE 1 - 10)</label>
+        <div class="fatiga-controles">
+          <input
+            id="input-rpe"
+            name="rpe_reportado"
+            type="number"
+            min="1"
+            max="10"
+            step="1"
+            placeholder="Ej. 8"
+            required
+          />
+          <input
+            id="input-motivo-ajuste"
+            name="motivo_ajuste"
+            type="text"
+            placeholder="Motivo opcional (ej. piernas cargadas)"
+          />
+          <button type="submit" id="btn-guardar-fatiga" class="btn-primario">
+            Registrar RPE / Ajustar
+          </button>
+        </div>
+        <p id="fatiga-feedback" class="feedback-msg"></p>
+      </form>
+
+      <div class="ejercicios-bloque">
+        <h3>Ejercicios de la sesión</h3>
+        <ul id="lista-ejercicios-sesion" class="lista-ejercicios"></ul>
+      </div>
+    </section>
+  </main>
+
+  <script src="../web/js/api.js"></script>
+  <script src="./js/mobileAuth.js"></script>
+  <script src="./js/mobileSesionDetalle.js"></script>
+</body>
+</html>

@@ -3,15 +3,17 @@ const express = require("express");
 const cors = require("cors");
 const authRoutes = require("./routes/auth.routes");
 const periodizationRoutes = require("./routes/periodizationRoutes");
+const sesionesRoutes = require("./routes/sesiones.routes");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-// Rutas de autenticación y periodización
+// Rutas de autenticación, periodización y sesiones
 app.use("/api/auth", authRoutes);
 app.use("/api", periodizationRoutes);
+app.use("/api/sesiones", sesionesRoutes);
 
 // Ruta 404 en formato JSON para endpoints inexistentes
 app.use((req, res) => {

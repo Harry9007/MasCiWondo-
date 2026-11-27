@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MasCiWondo Móvil · Mis Sesiones</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../web/css/estilos.css" />
+  <style>
+    .mobile-main {
+      max-width: 540px;
+      margin: 1.25rem auto;
+      padding: 0 1rem;
+      display: grid;
+      gap: 1rem;
+    }
+    .btn-sesion-movil {
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>🥋 MasCiWondo</h1>
+      <p class="subtitulo">Sesiones asignadas y control de carga</p>
+    </div>
+    <nav class="nav-links">
+      <a href="./index.html">Cuenta</a>
+      <a href="../web/macrociclo.html">Vista Web</a>
+    </nav>
+  </header>
+
+  <main class="mobile-main">
+    <section class="panel">
+      <div class="cuenta-header">
+        <div>
+          <span class="badge-paso">Sesión</span>
+          <p id="estado-sesion-usuario" class="subtitulo">No has iniciado sesión.</p>
+        </div>
+        <div class="acciones-sesion">
+          <a href="./index.html" id="btn-ir-login" class="btn-secundario">Iniciar Sesión</a>
+          <button type="button" id="btn-cerrar-sesion" class="btn-secundario" style="display:none;">
+            Salir
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="seccion-encabezado">
+        <div>
+          <span class="badge-paso">Entrenamientos</span>
+          <h2>Mis Sesiones</h2>
+          <p class="ayuda-corta">Abre una sesión para ver ejercicios y reportar tu RPE.</p>
+        </div>
+      </div>
+
+      <div class="barra-filtro">
+        <label style="flex:1;">
+          Microciclo ID (opcional)
+          <input type="number" id="movilFiltroMicrociclo" min="1" placeholder="Ej. 1" />
+        </label>
+        <button type="button" id="btn-movil-cargar" class="btn-primario">Cargar</button>
+      </div>
+
+      <div id="movil-lista-sesiones" class="lista-sesiones"></div>
+    </section>
+  </main>
+
+  <script src="../web/js/api.js"></script>
+  <script src="./js/mobileAuth.js"></script>
+  <script src="./js/mobileSesiones.js"></script>
+</body>
+</html>

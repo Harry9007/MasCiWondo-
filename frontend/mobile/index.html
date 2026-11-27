@@ -3,69 +3,88 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MasCiWondo · App Practicante</title>
-  <link rel="stylesheet" href="css/movil.css" />
+  <title>MasCiWondo Móvil · Cuenta</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../web/css/estilos.css" />
+  <style>
+    .mobile-main {
+      max-width: 520px;
+      margin: 1.25rem auto;
+      padding: 0 1rem;
+      display: grid;
+      gap: 1rem;
+    }
+  </style>
 </head>
 <body>
-  <header class="app-header">
-    <h1>MasCiWondo</h1>
-    <p>Entrenamiento diario y autorregulación TKD</p>
-    <a href="../web/index.html" class="link-web">Ir a Panel Web Entrenador</a>
+  <header class="topbar">
+    <div>
+      <h1>🥋 MasCiWondo</h1>
+      <p class="subtitulo">Acceso móvil · Practicante y Entrenador</p>
+    </div>
+    <nav class="nav-links">
+      <a href="./sesiones.html">Mis Sesiones</a>
+      <a href="../web/index.html">Vista Web</a>
+    </nav>
   </header>
 
-  <main class="app-main">
-    <section class="card" id="seccion-cuenta">
-      <div class="cuenta-header-movil">
+  <main class="mobile-main">
+    <section class="panel" id="seccion-cuenta">
+      <div class="cuenta-header">
         <div>
-          <span class="badge-movil">Acceso y Perfil</span>
-          <h2>Cuenta de Usuario</h2>
-          <p id="estado-sesion-usuario" class="ayuda">No has iniciado sesión.</p>
+          <p id="estado-sesion-usuario" class="subtitulo">No has iniciado sesión.</p>
         </div>
-        <button type="button" id="btn-cerrar-sesion" class="btn-azul btn-compacto" style="display:none;">
-          Cerrar sesión
-        </button>
+        <div class="acciones-sesion">
+          <a href="./sesiones.html" id="btn-ir-sesiones" class="btn-secundario" style="display:none;">
+            Ver Sesiones
+          </a>
+          <button type="button" id="btn-cerrar-sesion" class="btn-secundario" style="display:none;">
+            Cerrar sesión
+          </button>
+        </div>
       </div>
 
-      <div id="formularios-auth" class="auth-wrapper-movil">
-        <div class="auth-tabs-movil" role="tablist">
-          <button type="button" class="auth-tab-movil activa" data-target="form-login">
+      <div id="formularios-auth" class="auth-centrado-wrapper">
+        <div class="auth-tabs" role="tablist">
+          <button type="button" id="tab-login" class="auth-tab activa" data-target="form-login">
             Iniciar Sesión
           </button>
-          <button type="button" class="auth-tab-movil" data-target="form-registro">
+          <button type="button" id="tab-registro" class="auth-tab" data-target="form-registro">
             Crear Cuenta
           </button>
         </div>
 
-        <!-- Sub-tarjeta 1: Iniciar Sesión -->
-        <form id="form-login" class="subcard-movil stack auth-form-panel-movil activa">
-          <h3>Iniciar Sesión</h3>
-          <p class="ayuda">Ingresa con tu correo y contraseña.</p>
-          <label>
-            Correo electrónico
-            <input type="email" id="loginEmail" placeholder="tu@correo.com" required />
-          </label>
-          <label>
-            Contraseña
-            <input type="password" id="loginPassword" placeholder="********" required />
-          </label>
-          <button type="submit" class="btn-azul">Entrar</button>
+        <form id="form-login" class="card-acceso auth-form-panel activo">
+          <h2>🥋 MasCiWondo</h2>
+          <p class="bienvenida-acceso">Bienvenido</p>
+
+          <input type="email" id="loginEmail" placeholder="Correo electrónico" autocomplete="email" required />
+          <input type="password" id="loginPassword" placeholder="Contraseña" autocomplete="current-password" required />
+
+          <button type="submit" class="btn-acceso">Iniciar Sesión</button>
+
+          <p class="pie-acceso">
+            ¿No tienes cuenta?
+            <button type="button" class="link-inline-tab" data-ir-registro="true">Registrarse</button>
+          </p>
         </form>
 
-        <!-- Sub-tarjeta 2: Crear Cuenta -->
-        <form id="form-registro" class="subcard-movil stack auth-form-panel-movil">
-          <h3>Crear Cuenta</h3>
-          <p class="ayuda">Configura tu rol, modalidad y nivel de Taekwondo.</p>
+        <form id="form-registro" class="card-acceso stack auth-form-panel">
+          <h2>🥋 MasCiWondo</h2>
+          <p class="bienvenida-acceso">Crea tu cuenta</p>
+
           <label>
             Nombre completo
             <input type="text" id="regNombre" placeholder="Ej. Valentina Restrepo" required />
           </label>
           <label>
             Correo electrónico
-            <input type="email" id="regEmail" placeholder="valentina@correo.com" required />
+            <input type="email" id="regEmail" placeholder="valentina@correo.com" autocomplete="email" required />
           </label>
           <label>
             Contraseña (mín. 6 caracteres)
-            <input type="password" id="regPassword" minlength="6" required />
+            <input type="password" id="regPassword" minlength="6" autocomplete="new-password" required />
           </label>
           <label>
             Rol
@@ -90,74 +109,21 @@
               <option value="competitivo">Competitivo</option>
             </select>
           </label>
-          <label id="campo-entrenador">
+          <label>
             Entrenador asignado (opcional)
             <select id="regEntrenadorId">
               <option value="">Sin asignar</option>
             </select>
           </label>
-          <button type="submit" class="btn-naranja">Registrarme</button>
+          <button type="submit" class="btn-acceso">Registrarme</button>
         </form>
       </div>
 
-      <div id="mensaje-auth" class="resultado-movil" style="margin-top:0.75rem;"></div>
-    </section>
-
-    <section class="card" id="panel-mi-sesion">
-      <span class="badge-movil">Día de Entrenamiento</span>
-      <h2>Mi Sesión</h2>
-      <div class="fila-controles">
-        <input type="number" id="inputMicrociclo" placeholder="Microciclo ID (ej. 1)" min="1" />
-        <button type="button" id="btnBuscarSesiones" class="btn-azul">Buscar</button>
-      </div>
-      <div id="contenedorSesiones" class="stack"></div>
-    </section>
-
-    <section class="card" id="panelSobrecarga">
-      <span class="badge-movil badge-naranja">Autorregulación</span>
-      <h2>¿Sientes sobrecarga o fatiga?</h2>
-      <p class="ayuda">Genera una versión más ligera de una sesión base sin perder el hilo del ciclo.</p>
-
-      <form id="formModoLigero" class="stack">
-        <label>
-          ID de Sesión Base del Entrenador
-          <input type="number" id="sesionBaseId" placeholder="Ej. 1" min="1" required />
-        </label>
-
-        <label>
-          Nivel de Ajuste
-          <select id="nivelAjuste">
-            <option value="ligero">Ligero (-25% volumen, RPE moderado)</option>
-            <option value="recuperacion">Recuperación (-40% volumen, menor impacto)</option>
-          </select>
-        </label>
-
-        <label>
-          RPE Reportado (1 a 10)
-          <input type="number" id="rpeReportado" value="8" min="1" max="10" required />
-        </label>
-
-        <label>
-          Motivo
-          <select id="motivoAjuste">
-            <option value="sobrecarga">Sobrecarga física / muscular</option>
-            <option value="fatiga">Fatiga acumulada / poco descanso</option>
-            <option value="molestia">Molestia leve</option>
-            <option value="falta_tiempo">Poco tiempo disponible</option>
-          </select>
-        </label>
-
-        <button type="submit" class="btn-naranja">Generar Plan Alternativo Ligero</button>
-      </form>
-
-      <div id="resultadoLigero" class="resultado-movil"></div>
+      <div id="mensaje-auth" class="resultado-box" style="margin-top:0.85rem;"></div>
     </section>
   </main>
 
-  <script src="js/api.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/sesionDia.js"></script>
-  <script src="js/modoLigero.js"></script>
+  <script src="../web/js/api.js"></script>
+  <script src="./js/mobileAuth.js"></script>
 </body>
-</html>
 </html>
